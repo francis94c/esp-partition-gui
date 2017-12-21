@@ -10,27 +10,36 @@ class ESPPartitionGUI(Frame):
         """
         Frame.__init__(self, master)
         self.pack(fill=BOTH, side=TOP, expand=True)
+
+        # Configure all columns to be of layout weight 1.
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure(2, weight=1)
         self.grid_columnconfigure(3, weight=1)
         self.grid_columnconfigure(4, weight=1)
         self.grid_columnconfigure(5, weight=1)
+
+        # IntVars to track checkboxes states
         self.sub_type_int_var = IntVar()
+        self.offset_int_var = IntVar()
+        self.size_int_var = IntVar()
+        self.flags_int_var = IntVar()
+
+        # Declare and add Checkboxes
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
-                                             command=self.toggle_sub_type).grid(
-            row=0, column=3)
-        self.offset_checkbox = Checkbutton(self, text="Enable", variable=IntVar(), command=self.toggle_sub_type).grid(
-            row=0, column=4)
-        self.size_checkbox = Checkbutton(self, text="Enable", variable=IntVar(), command=self.toggle_sub_type).grid(
-            row=0, column=5)
-        self.flags_checkbox = Checkbutton(self, text="Enable", variable=IntVar(), command=self.toggle_sub_type).grid(
-            row=0, column=6)
-        self.controls = {"name": [], "ar_buttons": {}}
+                                             command=self.toggle_sub_type).grid(row=0, column=3)
+        self.offset_checkbox = Checkbutton(self, text="Enable", variable=self.offset_int_var,
+                                           command=self.toggle_sub_type).grid(row=0, column=4)
+        self.size_checkbox = Checkbutton(self, text="Enable", variable=self.size_int_var,
+                                         command=self.toggle_sub_type).grid(row=0, column=5)
+        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
+                                          command=self.toggle_sub_type).grid(row=0, column=6)
+        
+        self.widgets = {"name": [], "ar_buttons": {}}  # Variable to hold references to widgets on screen.
         for i in range(6):
             b = Button(self, text="-")
             b.grid(row=2 + i, column=0)
-            self.controls["ar_buttons"]["button_{}".format(i)] = b
+            self.widgets["ar_buttons"]["button_{}".format(i)] = b
         b = Button(self, text="+")
         b.grid(row=8, column=0)
         self.last_row = 8
@@ -45,7 +54,7 @@ class ESPPartitionGUI(Frame):
         for i in range(6):
             e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
             e.grid(row=2 + i, column=2)
-            self.controls["name"].append(e)
+            self.widgets["name"].append(e)
         self.ui_entries["name_0"].set("nvs")
         self.ui_entries["name_1"].set("otadata")
         self.ui_entries["name_2"].set("app0")
@@ -55,7 +64,7 @@ class ESPPartitionGUI(Frame):
 
     def toggle_sub_type(self):
         enable = self.sub_type_int_var.get()
-        entries = self.controls["name"]
+        entries = self.widgets["name"]
         for entry in entries:
             if enable:
                 entry.config(state=NORMAL)
