@@ -36,13 +36,13 @@ class ESPPartitionGUI(Frame):
         self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var).grid(row=0, column=6)
 
         # Variable to hold references to widgets on screen.
-        self.widgets = {"sub_type": [], "ar_buttons": {}, "offset": [], "size": []}
+        self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": []}
 
         # Add buttons to screen.
         for i in range(6):
-            b = Button(self, text="-")
+            b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
             b.grid(row=2 + i, column=0)
-            self.widgets["ar_buttons"]["button_{}".format(i)] = b
+            self.widgets["ar_buttons"].append(b)
 
         # The last '+' button.
         b = Button(self, text="+")
@@ -116,8 +116,10 @@ class ESPPartitionGUI(Frame):
         for i in range(6):
             e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
             e.grid(row=2 + i, column=1)
+            self.widgets["name"].append(e)
             o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
             o.grid(row=2 + i, column=2)
+            self.widgets["type"].append(o)
             e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
             e.grid(row=2 + i, column=3)
             self.widgets["sub_type"].append(e)
@@ -163,6 +165,9 @@ class ESPPartitionGUI(Frame):
         entries = self.widgets[key]
         for entry in entries:
             entry.config(state=NORMAL)
+
+    def delete_row(self, index):
+        self.widgets["name"][index].grid_forget()
 
 
 if __name__ == "__main__":
