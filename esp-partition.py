@@ -138,6 +138,10 @@ class ESPPartitionGUI(Frame):
         self.disable_widgets("size")
 
     def toggle_sub_type(self):
+        """
+        Toggles widget states of the Entry widgets int he sub type column.
+        :return: None
+        """
         enable = self.sub_type_int_var.get()
         if enable:
             self.enable_widgets("sub_type")
@@ -145,6 +149,10 @@ class ESPPartitionGUI(Frame):
             self.disable_widgets("sub_type")
 
     def toggle_offset(self):
+        """
+        Toggles widget states of the Entry widgets int he offset column.
+        :return:
+        """
         enable = self.offset_int_var.get()
         if enable:
             self.enable_widgets("offset")
