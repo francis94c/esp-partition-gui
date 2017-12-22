@@ -1,5 +1,6 @@
 from Tkinter import *
 
+
 class ESPPartitionGUI(Frame):
     def __init__(self, master=None, ):
         """
@@ -29,13 +30,13 @@ class ESPPartitionGUI(Frame):
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=0, column=3)
         self.offset_checkbox = Checkbutton(self, text="Enable", variable=self.offset_int_var,
-                                           command=self.toggle_sub_type).grid(row=0, column=4)
+                                           command=self.toggle_offset).grid(row=0, column=4)
         self.size_checkbox = Checkbutton(self, text="Enable", variable=self.size_int_var,
-                                         command=self.toggle_sub_type).grid(row=0, column=5)
-        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
-                                          command=self.toggle_sub_type).grid(row=0, column=6)
+                                         command=self.toggle_size).grid(row=0, column=5)
+        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var).grid(row=0, column=6)
 
-        self.widgets = {"name": [], "ar_buttons": {}}  # Variable to hold references to widgets on screen.
+        # Variable to hold references to widgets on screen.
+        self.widgets = {"sub_type": [], "ar_buttons": {}, "offset": [], "size": []}
 
         # Add buttons to screen.
         for i in range(6):
@@ -64,18 +65,14 @@ class ESPPartitionGUI(Frame):
             self.ui_entries["name_{}".format(i)] = StringVar()
         for i in range(6):
             self.ui_entries["type_{}".format(i)] = StringVar()
+        for i in range(6):
+            self.ui_entries["sub_type_{}".format(i)] = StringVar()
+        for i in range(6):
+            self.ui_entries["offset_{}".format(i)] = StringVar()
+        for i in range(6):
+            self.ui_entries["size_{}".format(i)] = StringVar()
 
         # Set Default Option Items.
-        self.ui_entries["type_0"].set("data")
-
-        # Name Entries.
-        for i in range(6):
-            e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
-            e.grid(row=2 + i, column=1)
-            #  self.widgets["name"].append(e)
-            e = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
-            e.grid(row=2 + i, column=2)
-
         self.ui_entries["name_0"].set("nvs")
         self.ui_entries["name_1"].set("otadata")
         self.ui_entries["name_2"].set("app0")
@@ -83,14 +80,89 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["name_4"].set("eeprom")
         self.ui_entries["name_5"].set("spiffs")
 
+        self.ui_entries["type_0"].set("data")
+        self.ui_entries["type_1"].set("data")
+        self.ui_entries["type_2"].set("app")
+        self.ui_entries["type_3"].set("app")
+        self.ui_entries["type_4"].set("data")
+        self.ui_entries["type_5"].set("data")
+
+        # Control variable for detecting the last logical input row index
+        self.last_logical_index = 5
+
+        # Default Entry Items
+        self.ui_entries["sub_type_0"].set("nvs")
+        self.ui_entries["sub_type_1"].set("ota")
+        self.ui_entries["sub_type_2"].set("ota_0")
+        self.ui_entries["sub_type_3"].set("ota_1")
+        self.ui_entries["sub_type_4"].set("0x99")
+        self.ui_entries["sub_type_5"].set("spiffs")
+
+        self.ui_entries["offset_0"].set("0x9000")
+        self.ui_entries["offset_1"].set("0xe000")
+        self.ui_entries["offset_2"].set("0x10000")
+        self.ui_entries["offset_3"].set("0x150000")
+        self.ui_entries["offset_4"].set("0x290000")
+        self.ui_entries["offset_5"].set("0x291000")
+
+        self.ui_entries["size_0"].set("0x5000")
+        self.ui_entries["size_1"].set("0x2000")
+        self.ui_entries["size_2"].set("0x140000")
+        self.ui_entries["size_3"].set("0x140000")
+        self.ui_entries["size_4"].set("0x1000")
+        self.ui_entries["size_5"].set("0x169000")
+
+        # Entries and Option Menus.
+        for i in range(6):
+            e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
+            e.grid(row=2 + i, column=1)
+            o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
+            o.grid(row=2 + i, column=2)
+            e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
+            e.grid(row=2 + i, column=3)
+            self.widgets["sub_type"].append(e)
+            e = Entry(self, textvariable=self.ui_entries["offset_{}".format(i)])
+            e.grid(row=2 + i, column=4)
+            self.widgets["offset"].append(e)
+            e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
+            e.grid(row=2 + i, column=5)
+            self.widgets["size"].append(e)
+
+        # Set by default disabled widgets.
+        self.disable_widgets("sub_type")
+        self.disable_widgets("offset")
+        self.disable_widgets("size")
+
     def toggle_sub_type(self):
         enable = self.sub_type_int_var.get()
-        entries = self.widgets["name"]
+        if enable:
+            self.enable_widgets("sub_type")
+        else:
+            self.disable_widgets("sub_type")
+
+    def toggle_offset(self):
+        enable = self.offset_int_var.get()
+        if enable:
+            self.enable_widgets("offset")
+        else:
+            self.disable_widgets("offset")
+
+    def toggle_size(self):
+        enable = self.size_int_var.get()
+        if enable:
+            self.enable_widgets("size")
+        else:
+            self.disable_widgets("size")
+
+    def disable_widgets(self, key):
+        entries = self.widgets[key]
         for entry in entries:
-            if enable:
-                entry.config(state=NORMAL)
-            else:
-                entry.config(state=DISABLED)
+            entry.config(state=DISABLED)
+
+    def enable_widgets(self, key):
+        entries = self.widgets[key]
+        for entry in entries:
+            entry.config(state=NORMAL)
 
 
 if __name__ == "__main__":
