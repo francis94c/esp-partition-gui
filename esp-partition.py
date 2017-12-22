@@ -45,11 +45,13 @@ class ESPPartitionGUI(Frame):
             self.widgets["ar_buttons"].append(b)
 
         # The last '+' button.
-        b = Button(self, text="+")
-        b.grid(row=8, column=0)
+        self.plus_button = Button(self, text="+", command=self.add_row)
+        self.plus_button.grid(row=8, column=0)
 
         # The last know row modified in the grid.
-        self.last_row = 8
+        self.last_row = 7
+        self.row_treshold = 7
+        self.forgotten_logical_indices = []
 
         # Labels
         Label(self, text="Name").grid(row=1, column=1)
@@ -167,7 +169,47 @@ class ESPPartitionGUI(Frame):
             entry.config(state=NORMAL)
 
     def delete_row(self, index):
-        self.widgets["name"][index].grid_forget()
+        self.widgets["name"][index].destroy()
+        del self.ui_entries["name_{}".format(index)]
+        self.widgets["type"][index].destroy()
+        del self.ui_entries["type_{}".format(index)]
+        self.widgets["sub_type"][index].destroy()
+        del self.ui_entries["sub_type_{}".format(index)]
+        self.widgets["offset"][index].destroy()
+        del self.ui_entries["offset_{}".format(index)]
+        self.widgets["size"][index].destroy()
+        del self.ui_entries["size_{}".format(index)]
+        self.widgets["ar_buttons"][index].destroy()
+
+    def add_row(self):
+        self.last_logical_index += 1
+        self.ui_entries["name_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["type_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["offset_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["size_{}".format(self.last_logical_index)] = StringVar()
+        e = Entry(self, textvariable=self.ui_entries["name_{}".format(self.last_logical_index)])
+        e.grid(row=self.last_row + 1, column=1)
+        self.widgets["name"].append(e)
+        o = OptionMenu(self, self.ui_entries["type_{}".format(self.last_logical_index)], "data", "app")
+        o.grid(row=self.last_row + 1, column=2)
+        self.widgets["type"].append(o)
+        e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(self.last_logical_index)])
+        e.grid(row=self.last_row + 1, column=3)
+        self.widgets["sub_type"].append(e)
+        e = Entry(self, textvariable=self.ui_entries["offset_{}".format(self.last_logical_index)])
+        e.grid(row=self.last_row + 1, column=4)
+        self.widgets["offset"].append(e)
+        e = Entry(self, textvariable=self.ui_entries["size_{}".format(self.last_logical_index)])
+        e.grid(row=self.last_row + 1, column=5)
+        self.widgets["size"].append(e)
+        # 'index=self.last_row: self.delete_row(index)' because this value will be incremented a the end of this
+        # function.
+        b = Button(self, text="-", command=lambda index=self.last_logical_index: self.delete_row(index))
+        b.grid(row=self.last_row + 1, column=0)
+        self.widgets["ar_buttons"].append(b)
+        self.plus_button.grid(row=self.last_row + 2, column=0)
+        self.last_row += 1
 
 
 if __name__ == "__main__":
