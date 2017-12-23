@@ -26,6 +26,11 @@ class ESPPartitionGUI(Frame):
         self.size_int_var = IntVar()
         self.flags_int_var = IntVar()
 
+        # Control Variables
+        self.last_sub_type = 0x99
+        self.next_offset = 0x291000
+        self.spiffs_size = 0x169000
+
         # Declare and add Checkboxes
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=0, column=3)
@@ -41,8 +46,9 @@ class ESPPartitionGUI(Frame):
         # Add buttons to screen.
         for i in range(6):
             b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
-            b.grid(row=2 + i, column=0)
             self.widgets["ar_buttons"].append(b)
+            if i != 5:
+                b.grid(row=2 + i, column=0)
 
         # The last '+' button.
         self.plus_button = Button(self, text="+", command=self.add_row)
@@ -137,6 +143,9 @@ class ESPPartitionGUI(Frame):
         self.disable_widgets("offset")
         self.disable_widgets("size")
 
+        # Menu bar
+        self.menu_bar = Menu(self)
+
     def toggle_sub_type(self):
         """
         Toggles widget states of the Entry widgets int he sub type column.
@@ -188,14 +197,31 @@ class ESPPartitionGUI(Frame):
         self.widgets["size"][index].destroy()
         del self.ui_entries["size_{}".format(index)]
         self.widgets["ar_buttons"][index].destroy()
+        self.spiffs_size += 0x1000
+        self.ui_entries["size_5"].set(hex(self.spiffs_size))
 
     def add_row(self):
         self.last_logical_index += 1
         self.ui_entries["name_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["name_{}".format(self.last_logical_index)].set(
+            "new_partition_{}".format(self.last_logical_index))
+
         self.ui_entries["type_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["type_{}".format(self.last_logical_index)].set("data")
+
         self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
+        self.last_sub_type += 0x1
+        self.ui_entries["sub_type_{}".format(self.last_logical_index)].set(hex(self.last_sub_type))
+
         self.ui_entries["offset_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["offset_{}".format(self.last_logical_index)].set(hex(self.next_offset))
+        self.next_offset += 0x1000
+
         self.ui_entries["size_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["size_{}".format(self.last_logical_index)].set(hex(0x1000))
+        self.spiffs_size -= 0x1000
+        self.ui_entries["size_5"].set(hex(self.spiffs_size))
+
         e = Entry(self, textvariable=self.ui_entries["name_{}".format(self.last_logical_index)])
         e.grid(row=self.last_row + 1, column=1)
         self.widgets["name"].append(e)
@@ -204,12 +230,24 @@ class ESPPartitionGUI(Frame):
         self.widgets["type"].append(o)
         e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(self.last_logical_index)])
         e.grid(row=self.last_row + 1, column=3)
+        if self.sub_type_int_var.get():
+            e.config(state=NORMAL)
+        else:
+            e.config(state=DISABLED)
         self.widgets["sub_type"].append(e)
         e = Entry(self, textvariable=self.ui_entries["offset_{}".format(self.last_logical_index)])
         e.grid(row=self.last_row + 1, column=4)
+        if self.offset_int_var.get():
+            e.config(state=NORMAL)
+        else:
+            e.config(state=DISABLED)
         self.widgets["offset"].append(e)
         e = Entry(self, textvariable=self.ui_entries["size_{}".format(self.last_logical_index)])
         e.grid(row=self.last_row + 1, column=5)
+        if self.size_int_var.get():
+            e.config(state=NORMAL)
+        else:
+            e.config(state=DISABLED)
         self.widgets["size"].append(e)
         # 'index=self.last_row: self.delete_row(index)' because this value will be incremented a the end of this
         # function.
