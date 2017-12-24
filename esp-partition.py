@@ -295,6 +295,16 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["offset_{}".format(ota_data_index)].get(),
                  self.ui_entries["size_{}".format(ota_data_index)].get(), ""])
 
+            # app ota data
+            app_ota_indices = self.get_ota_app_indices()
+            for i in app_ota_indices:
+                csv_writer.writerow(
+                    [self.ui_entries["name_{}".format(i)].get(),
+                     self.ui_entries["type_{}".format(i)].get(),
+                     self.ui_entries["sub_type_{}".format(i)].get(),
+                     self.ui_entries["offset_{}".format(i)].get(),
+                     self.ui_entries["size_{}".format(i)].get(), ""])
+
     def get_nvs_index(self):
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "nvs" in v.get():
@@ -315,11 +325,21 @@ class ESPPartitionGUI(Frame):
                 if "ota" in self.ui_entries["sub_type_{}".format(row_index)].get():
                     return row_index
 
-    def get_app_ota_indices(self):
+    def get_ota_app_indices(self):
         indices = []
         for k, v in self.ui_entries.iteritems():
             if "type" in k and "app" in v.get():
                 indices.append(k[k.rfind("_") + 1:])
+        sub_types = {}
+        for i in indices:
+            sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
+        sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+        print(sub_types)
+        for i in range(len(indices)):
+            k, v = sub_types[i]
+            indices[i] = k[2:]
+        return indices
+
 
 if __name__ == "__main__":
     top = Tk()
