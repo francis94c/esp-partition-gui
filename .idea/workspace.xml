@@ -26,8 +26,8 @@
       <file leaf-file-name="esp-partition.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/esp-partition.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1179">
-              <caret line="187" column="16" selection-start-line="187" selection-start-column="16" selection-end-line="187" selection-end-column="16" />
+            <state relative-caret-position="546">
+              <caret line="321" column="52" selection-start-line="321" selection-start-column="52" selection-end-line="321" selection-end-column="52" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -320,7 +320,14 @@
       <option name="project" value="LOCAL" />
       <updated>1514129048692</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Check if widgets exists before enabling or disabling, accounted for shifting of buttons when a row is added.">
+      <created>1514129815404</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1514129815404</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -364,7 +371,8 @@
     <MESSAGE value="package removal" />
     <MESSAGE value="Write to CSV implementation started." />
     <MESSAGE value="OTA data write to csv" />
-    <option name="LAST_COMMIT_MESSAGE" value="OTA data write to csv" />
+    <MESSAGE value="Check if widgets exists before enabling or disabling, accounted for shifting of buttons when a row is added." />
+    <option name="LAST_COMMIT_MESSAGE" value="Check if widgets exists before enabling or disabling, accounted for shifting of buttons when a row is added." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -427,8 +435,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/esp-partition.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1179">
-          <caret line="187" column="16" selection-start-line="187" selection-start-column="16" selection-end-line="187" selection-end-column="16" />
+        <state relative-caret-position="546">
+          <caret line="321" column="52" selection-start-line="321" selection-start-column="52" selection-end-line="321" selection-end-column="52" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

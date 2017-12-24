@@ -315,6 +315,11 @@ class ESPPartitionGUI(Frame):
                 if "ota" in self.ui_entries["sub_type_{}".format(row_index)].get():
                     return row_index
 
+    def get_app_ota_indices(self):
+        indices = []
+        for k, v in self.ui_entries.iteritems():
+            if "type" in k and "app" in v.get():
+                indices.append(k[k.rfind("_") + 1:])
 
 if __name__ == "__main__":
     top = Tk()
