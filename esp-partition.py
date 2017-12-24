@@ -1,4 +1,6 @@
 from Tkinter import *
+from tkFileDialog import asksaveasfilename
+import csv
 
 
 class ESPPartitionGUI(Frame):
@@ -53,6 +55,10 @@ class ESPPartitionGUI(Frame):
         # The last '+' button.
         self.plus_button = Button(self, text="+", command=self.add_row)
         self.plus_button.grid(row=8, column=0)
+        self.export_to_binary_button = Button(self, text="Export to Binary")
+        self.export_to_binary_button.grid(row=8, column=6)
+        self.export_to_binary_button = Button(self, text="Export to CSV", command=self.export_to_csv)
+        self.export_to_binary_button.grid(row=8, column=5)
 
         # The last know row modified in the grid.
         self.last_row = 7
@@ -256,6 +262,34 @@ class ESPPartitionGUI(Frame):
         self.widgets["ar_buttons"].append(b)
         self.plus_button.grid(row=self.last_row + 2, column=0)
         self.last_row += 1
+
+    def export_to_csv(self):
+        file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...")
+        if file_name is not None:
+            self.write_to_csv(file_name)
+
+    def write_to_csv(self, output_file_name):
+        with open(output_file_name, "wb") as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=",", quoting=csv.QUOTE_MINIMAL)
+            csv_writer.writerow(["# Name", "Type", "SubType", "Offset", "Size", "Flags"])
+            # nvs
+            nvs_keys = self.get_names_match_keys("nvs")
+
+            # used list index 0 only because we need only one nvs
+            nvs_logical_index = nvs_keys[0][nvs_keys[0].find("_") + 1:]
+
+            csv_writer.writerow(
+                [self.ui_entries[nvs_keys[0]].get(), self.ui_entries["type_{}".format(nvs_logical_index)].get(),
+                 self.ui_entries["sub_type_{}".format(nvs_logical_index)].get(),
+                 self.ui_entries["offset_{}".format(nvs_logical_index)].get(),
+                 self.ui_entries["size_{}".format(nvs_logical_index)].get(), ""])
+
+    def get_names_match_keys(self, find):
+        keys = []
+        for k, v in self.ui_entries.iteritems():
+            if "name" in k and find in v.get():
+                keys.append(k)
+        return keys
 
 
 if __name__ == "__main__":
