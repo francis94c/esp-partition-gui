@@ -57,8 +57,8 @@ class ESPPartitionGUI(Frame):
         self.plus_button.grid(row=8, column=0)
         self.export_to_binary_button = Button(self, text="Export to Binary")
         self.export_to_binary_button.grid(row=8, column=6)
-        self.export_to_binary_button = Button(self, text="Export to CSV", command=self.export_to_csv)
-        self.export_to_binary_button.grid(row=8, column=5)
+        self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
+        self.export_to_csv_button.grid(row=8, column=5)
 
         # The last know row modified in the grid.
         self.last_row = 7
@@ -184,12 +184,14 @@ class ESPPartitionGUI(Frame):
     def disable_widgets(self, key):
         entries = self.widgets[key]
         for entry in entries:
-            entry.config(state=DISABLED)
+            if entry.winfo_exists() == 1:
+                entry.config(state=DISABLED)
 
     def enable_widgets(self, key):
         entries = self.widgets[key]
         for entry in entries:
-            entry.config(state=NORMAL)
+            if entry.winfo_exists() == 1:
+                entry.config(state=NORMAL)
 
     def delete_row(self, index):
         self.widgets["name"][index].destroy()
@@ -255,12 +257,14 @@ class ESPPartitionGUI(Frame):
         else:
             e.config(state=DISABLED)
         self.widgets["size"].append(e)
-        # 'index=self.last_row: self.delete_row(index)' because this value will be incremented a the end of this
-        # function.
         b = Button(self, text="-", command=lambda index=self.last_logical_index: self.delete_row(index))
         b.grid(row=self.last_row + 1, column=0)
         self.widgets["ar_buttons"].append(b)
-        self.plus_button.grid(row=self.last_row + 2, column=0)
+
+        # Shift buttons down by one grid row
+        self.plus_button.grid(row=self.last_row + 2)
+        self.export_to_csv_button.grid(row=self.last_row + 2)
+        self.export_to_binary_button.grid(row=self.last_row + 2)
         self.last_row += 1
 
     def export_to_csv(self):
