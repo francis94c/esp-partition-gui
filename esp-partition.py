@@ -272,24 +272,44 @@ class ESPPartitionGUI(Frame):
         with open(output_file_name, "wb") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=",", quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerow(["# Name", "Type", "SubType", "Offset", "Size", "Flags"])
+
             # nvs
-            nvs_keys = self.get_names_match_keys("nvs")
-
-            # used list index 0 only because we need only one nvs
-            nvs_logical_index = nvs_keys[0][nvs_keys[0].find("_") + 1:]
-
+            nvs_index = self.get_nvs_index()
             csv_writer.writerow(
-                [self.ui_entries[nvs_keys[0]].get(), self.ui_entries["type_{}".format(nvs_logical_index)].get(),
-                 self.ui_entries["sub_type_{}".format(nvs_logical_index)].get(),
-                 self.ui_entries["offset_{}".format(nvs_logical_index)].get(),
-                 self.ui_entries["size_{}".format(nvs_logical_index)].get(), ""])
+                [self.ui_entries["name_{}".format(nvs_index)].get(),
+                 self.ui_entries["type_{}".format(nvs_index)].get(),
+                 self.ui_entries["sub_type_{}".format(nvs_index)].get(),
+                 self.ui_entries["offset_{}".format(nvs_index)].get(),
+                 self.ui_entries["size_{}".format(nvs_index)].get(), ""])
 
+            # ota
+            ota_data_index = self.get_ota_data_index()
+            csv_writer.writerow(
+                [self.ui_entries["name_{}".format(ota_data_index)].get(),
+                 self.ui_entries["type_{}".format(ota_data_index)].get(),
+                 self.ui_entries["sub_type_{}".format(ota_data_index)].get(),
+                 self.ui_entries["offset_{}".format(ota_data_index)].get(),
+                 self.ui_entries["size_{}".format(ota_data_index)].get(), ""])
+
+    def get_nvs_index(self):
+        for k, v in self.ui_entries.iteritems():
+            if "sub_type" in k and "nvs" in v.get():
+                return k[k.rfind("_") + 1:]
+
+    # Currently Useless...
     def get_names_match_keys(self, find):
         keys = []
         for k, v in self.ui_entries.iteritems():
             if "name" in k and find in v.get():
                 keys.append(k)
         return keys
+
+    def get_ota_data_index(self):
+        for k, v in self.ui_entries.iteritems():
+            if "type" in k and "data" in v.get():
+                row_index = k[k.rfind("_") + 1:]
+                if "ota" in self.ui_entries["sub_type_{}".format(row_index)].get():
+                    return row_index
 
 
 if __name__ == "__main__":
