@@ -1,6 +1,6 @@
 from Tkinter import *
 import tkMessageBox
-from tkFileDialog import asksaveasfilename, askdirectory
+from tkFileDialog import asksaveasfilename, askdirectory, askopenfilename
 import csv
 import os
 import json
@@ -160,10 +160,13 @@ class ESPPartitionGUI(Frame):
         # Menu bar
         self.menu_bar = Menu(self)
         self.master.config(menu=self.menu_bar)
+
+        # File Menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
         self.file_menu.add_command(label="Show Current Arduino Directory", command=self.show_current_arduino_directory)
+        self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
 
     def show_current_arduino_directory(self):
         if self.configs is not None:
@@ -313,6 +316,8 @@ class ESPPartitionGUI(Frame):
                     "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
                         self.configs["arduino_path"], csv_file_name, bin_file_name)):
                 tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+            else:
+                tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
     def export_to_csv(self):
         file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
@@ -320,6 +325,20 @@ class ESPPartitionGUI(Frame):
         if file_name is not None:
             self.write_to_csv(file_name)
             tkMessageBox.showinfo("Done Writing", "Done Writing to CSV")
+
+    def convert_csv_to_bin(self):
+        csv_file_name = askopenfilename(defaultextension=".csv", title="Save CSV file as...",
+                                        filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
+        if csv_file_name is not None:
+            if ".csv" not in csv_file_name:
+                csv_file_name += ".csv"
+            bin_file_name = csv_file_name.replace(".csv", ".bin")
+            if "Parsing CSV input" in os.system(
+                    "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
+                        self.configs["arduino_path"], csv_file_name, bin_file_name)):
+                tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+            else:
+                tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
     def write_to_csv(self, output_file_name):
         with open(output_file_name, "wb") as csv_file:
