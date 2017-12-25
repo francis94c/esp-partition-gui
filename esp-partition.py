@@ -305,6 +305,26 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["offset_{}".format(i)].get(),
                      self.ui_entries["size_{}".format(i)].get(), ""])
 
+            # data -- eeprom's
+            data_indices = self.get_data_indices()
+            for i in data_indices:
+                csv_writer.writerow(
+                    [self.ui_entries["name_{}".format(i)].get(),
+                     self.ui_entries["type_{}".format(i)].get(),
+                     self.ui_entries["sub_type_{}".format(i)].get(),
+                     self.ui_entries["offset_{}".format(i)].get(),
+                     self.ui_entries["size_{}".format(i)].get(), ""])
+
+            # spiffs
+            spiffs_index = self.get_spiffs_index()
+            csv_writer.writerow(
+                [self.ui_entries["name_{}".format(spiffs_index)].get(),
+                 self.ui_entries["type_{}".format(spiffs_index)].get(),
+                 self.ui_entries["sub_type_{}".format(spiffs_index)].get(),
+                 self.ui_entries["offset_{}".format(spiffs_index)].get(),
+                 self.ui_entries["size_{}".format(spiffs_index)].get(), ""])
+
+
     def get_nvs_index(self):
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "nvs" in v.get():
@@ -334,11 +354,33 @@ class ESPPartitionGUI(Frame):
         for i in indices:
             sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
         sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
-        print(sub_types)
         for i in range(len(indices)):
             k, v = sub_types[i]
             indices[i] = k[2:]
         return indices
+
+    def get_data_indices(self):
+        indices = []
+        for k, v in self.ui_entries.iteritems():
+            if "type" in k and "data" in v.get():
+                row_index = k[k.rfind("_") + 1:]
+                if "spiffs" not in self.ui_entries["sub_type_{}".format(row_index)].get() and "ota" not in \
+                        self.ui_entries["sub_type_{}".format(row_index)].get() and "nvs" not in self.ui_entries[
+                        "sub_type_{}".format(row_index)].get():
+                    indices.append(row_index)
+        sub_types = {}
+        for i in indices:
+            sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
+        sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+        for i in range(len(indices)):
+            k, v = sub_types[i]
+            indices[i] = k[2:]
+        return indices
+
+    def get_spiffs_index(self):
+        for k, v in self.ui_entries.iteritems():
+            if "sub_type" in k and "spiffs" in v.get():
+                return k[k.rfind("_") + 1:]
 
 
 if __name__ == "__main__":

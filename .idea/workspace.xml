@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a832036f-968a-4b8a-a2c9-905d39eefe12" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/esp-partition.py" afterPath="$PROJECT_DIR$/esp-partition.py" />
     </list>
@@ -26,8 +27,8 @@
       <file leaf-file-name="esp-partition.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/esp-partition.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3564">
-              <caret line="109" column="48" selection-start-line="109" selection-start-column="48" selection-end-line="109" selection-end-column="48" />
+            <state relative-caret-position="304">
+              <caret line="324" column="62" selection-start-line="324" selection-start-column="62" selection-end-line="324" selection-end-column="62" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -334,7 +335,14 @@
       <option name="project" value="LOCAL" />
       <updated>1514130033106</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="finished OTA apps extraction for CSV file exporting.">
+      <created>1514153332319</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1514153332319</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -398,7 +406,8 @@
     <MESSAGE value="OTA data write to csv" />
     <MESSAGE value="Check if widgets exists before enabling or disabling, accounted for shifting of buttons when a row is added." />
     <MESSAGE value="started OTA apps extraction for CSV file exporting." />
-    <option name="LAST_COMMIT_MESSAGE" value="started OTA apps extraction for CSV file exporting." />
+    <MESSAGE value="finished OTA apps extraction for CSV file exporting." />
+    <option name="LAST_COMMIT_MESSAGE" value="finished OTA apps extraction for CSV file exporting." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -461,8 +470,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/esp-partition.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3564">
-          <caret line="109" column="48" selection-start-line="109" selection-start-column="48" selection-end-line="109" selection-end-column="48" />
+        <state relative-caret-position="304">
+          <caret line="324" column="62" selection-start-line="324" selection-start-column="62" selection-end-line="324" selection-end-column="62" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>
