@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a832036f-968a-4b8a-a2c9-905d39eefe12" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/init.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/esp-partition.py" afterPath="$PROJECT_DIR$/esp-partition.py" />
@@ -27,8 +30,8 @@
       <file leaf-file-name="esp-partition.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/esp-partition.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="324" column="62" selection-start-line="324" selection-start-column="62" selection-end-line="324" selection-end-column="62" />
+            <state relative-caret-position="559">
+              <caret line="378" column="43" selection-start-line="378" selection-start-column="43" selection-end-line="378" selection-end-column="43" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -48,6 +51,7 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
+        <option value="Francis Ilechukwu &lt;francis94c@gmail.com&gt;w" />
         <option value="Francis Ilechukwu &lt;francis94c@gmail.com&gt;" />
         <option value="Francis Ilechukwu &lt;francis94c@gmail.com&gt;Name" />
         <option value="Francis-PC\Francis &lt;francis94c@gmail.com&gt;Do" />
@@ -342,7 +346,14 @@
       <option name="project" value="LOCAL" />
       <updated>1514153332319</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="finished witing spiffs to CSV file.">
+      <created>1514189160269</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1514189160269</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -407,11 +418,12 @@
     <MESSAGE value="Check if widgets exists before enabling or disabling, accounted for shifting of buttons when a row is added." />
     <MESSAGE value="started OTA apps extraction for CSV file exporting." />
     <MESSAGE value="finished OTA apps extraction for CSV file exporting." />
-    <option name="LAST_COMMIT_MESSAGE" value="finished OTA apps extraction for CSV file exporting." />
+    <MESSAGE value="finished witing spiffs to CSV file." />
+    <option name="LAST_COMMIT_MESSAGE" value="finished witing spiffs to CSV file." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="17" />
+      <option name="time" value="19" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -470,8 +482,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/esp-partition.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="324" column="62" selection-start-line="324" selection-start-column="62" selection-end-line="324" selection-end-column="62" />
+        <state relative-caret-position="559">
+          <caret line="378" column="43" selection-start-line="378" selection-start-column="43" selection-end-line="378" selection-end-column="43" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

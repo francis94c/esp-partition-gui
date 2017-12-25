@@ -1,16 +1,24 @@
 from Tkinter import *
-from tkFileDialog import asksaveasfilename
+import tkMessageBox
+from tkFileDialog import asksaveasfilename, askdirectory
 import csv
+import os
+import json
 
 
 class ESPPartitionGUI(Frame):
-    def __init__(self, master=None, ):
+    def __init__(self, master=None, configs=None):
         """
         Initialization of the Main GUI Form
         The Widgets are loaded and arranged here with the default ESP partition template.
         :param master: a Tk top level object obtained by calling Tk().
         """
         Frame.__init__(self, master)
+
+        if configs is None:
+            self.configs = {}
+        else:
+            self.configs = configs
 
         self.pack(fill=BOTH, side=TOP, expand=True)
 
@@ -55,7 +63,7 @@ class ESPPartitionGUI(Frame):
         # The last '+' button.
         self.plus_button = Button(self, text="+", command=self.add_row)
         self.plus_button.grid(row=8, column=0)
-        self.export_to_binary_button = Button(self, text="Export to Binary")
+        self.export_to_binary_button = Button(self, text="Export to Binary", command=self.export_to_bin)
         self.export_to_binary_button.grid(row=8, column=6)
         self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
         self.export_to_csv_button.grid(row=8, column=5)
@@ -151,6 +159,28 @@ class ESPPartitionGUI(Frame):
 
         # Menu bar
         self.menu_bar = Menu(self)
+        self.master.config(menu=self.menu_bar)
+        self.file_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
+        self.file_menu.add_command(label="Show Current Arduino Directory", command=self.show_current_arduino_directory)
+
+    def show_current_arduino_directory(self):
+        if self.configs is not None:
+            if 'arduino_path' in self.configs:
+                tkMessageBox.showinfo("Current Arduino Directory", self.configs["arduino_path"])
+            else:
+                tkMessageBox.showwarning("Current Arduino Directory", "No Arduino Directory Set.")
+        else:
+            tkMessageBox.showwarning("Current Arduino Directory", "No Arduino Directory Set.")
+
+    def choose_arduino_directory(self):
+        folder_string = askdirectory()
+        if os.path.isfile(folder_string + "/hardware/espressif/esp32/tools/gen_esp32part.py"):
+            self.configs["arduino_path"] = folder_string
+            json.dump(self.configs, open("init.json", "w"))
+        else:
+            tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
     def toggle_sub_type(self):
         """
@@ -267,10 +297,29 @@ class ESPPartitionGUI(Frame):
         self.export_to_binary_button.grid(row=self.last_row + 2)
         self.last_row += 1
 
+    def export_to_bin(self):
+        if self.configs["arduino_path"] is None:
+            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
+        else:
+            bin_file_name = asksaveasfilename(defaultextension=".bin", title="Save bin file as...",
+                                              filetypes=(("Binary File", "*.bin"), ("All Files", "*.*")))
+            if bin_file_name.endswith(".bin"):
+                csv_file_name = bin_file_name.replace(".bin", ".csv")
+            else:
+                bin_file_name += ".bin"
+                csv_file_name = bin_file_name.replace(".bin", ".csv")
+            self.write_to_csv(csv_file_name)
+            if "Parsing CSV input" in os.system(
+                    "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
+                        self.configs["arduino_path"], csv_file_name, bin_file_name)):
+                tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+
     def export_to_csv(self):
-        file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...")
+        file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
+                                      filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
         if file_name is not None:
             self.write_to_csv(file_name)
+            tkMessageBox.showinfo("Done Writing", "Done Writing to CSV")
 
     def write_to_csv(self, output_file_name):
         with open(output_file_name, "wb") as csv_file:
@@ -324,19 +373,10 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["offset_{}".format(spiffs_index)].get(),
                  self.ui_entries["size_{}".format(spiffs_index)].get(), ""])
 
-
     def get_nvs_index(self):
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "nvs" in v.get():
                 return k[k.rfind("_") + 1:]
-
-    # Currently Useless...
-    def get_names_match_keys(self, find):
-        keys = []
-        for k, v in self.ui_entries.iteritems():
-            if "name" in k and find in v.get():
-                keys.append(k)
-        return keys
 
     def get_ota_data_index(self):
         for k, v in self.ui_entries.iteritems():
@@ -366,7 +406,7 @@ class ESPPartitionGUI(Frame):
                 row_index = k[k.rfind("_") + 1:]
                 if "spiffs" not in self.ui_entries["sub_type_{}".format(row_index)].get() and "ota" not in \
                         self.ui_entries["sub_type_{}".format(row_index)].get() and "nvs" not in self.ui_entries[
-                        "sub_type_{}".format(row_index)].get():
+                    "sub_type_{}".format(row_index)].get():
                     indices.append(row_index)
         sub_types = {}
         for i in indices:
@@ -386,4 +426,7 @@ class ESPPartitionGUI(Frame):
 if __name__ == "__main__":
     top = Tk()
     top.title("ESP Partition GUI")
-    ESPPartitionGUI(top).mainloop()
+    init_file = None
+    if os.path.isfile("init.json"):
+        init_file = json.load(open("init.json"))
+    ESPPartitionGUI(top, init_file).mainloop()
