@@ -110,7 +110,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["type_4"].set("data")
         self.ui_entries["type_5"].set("data")
 
-        # Control variable for detecting the last logical input row index
+        # Control variable for detecting the last logical input row index of widgets regardless of grid row.
         self.last_logical_index = 5
 
         # Default Entry Items
@@ -136,6 +136,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["size_5"].set("0x169000")
 
         # Entries and Option Menus.
+        # Dictionary keys are used to store reference to the widget objects so as to be able to enable and disable them.
         for i in range(6):
             e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
             e.grid(row=2 + i, column=1)
@@ -176,6 +177,10 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
     def show_current_arduino_directory(self):
+        """
+        Shows a popup window with the current set arduino ide root path.
+        :return: None
+        """
         if self.configs is not None:
             if 'arduino_path' in self.configs:
                 tkMessageBox.showinfo("Current Arduino Directory", self.configs["arduino_path"])
@@ -185,6 +190,12 @@ class ESPPartitionGUI(Frame):
             tkMessageBox.showwarning("Current Arduino Directory", "No Arduino Directory Set.")
 
     def choose_arduino_directory(self):
+        """
+        Opens a directory chooser dialog to select the root path of an arduino ide installation. On selection, this
+        function will check for the gen_esp32_part.py sript in the expected folder before it can marj the selected
+        folder as valid.
+        :return: None
+        """
         folder_string = askdirectory()
         if os.path.isfile(folder_string + "/hardware/espressif/esp32/tools/gen_esp32part.py"):
             self.configs["arduino_path"] = folder_string
@@ -195,7 +206,7 @@ class ESPPartitionGUI(Frame):
 
     def toggle_sub_type(self):
         """
-        Toggles widget states of the Entry widgets int he sub type column.
+        Toggles widget states of the Entry widgets int the sub type column.
         :return: None
         """
         enable = self.sub_type_int_var.get()
@@ -206,8 +217,8 @@ class ESPPartitionGUI(Frame):
 
     def toggle_offset(self):
         """
-        Toggles widget states of the Entry widgets int he offset column.
-        :return:
+        Toggles widget states of the Entry widgets int the offset column.
+        :return: None
         """
         enable = self.offset_int_var.get()
         if enable:
@@ -216,6 +227,10 @@ class ESPPartitionGUI(Frame):
             self.disable_widgets("offset")
 
     def toggle_size(self):
+        """
+        Toggles widget states of the Entry widgets int the size column.
+        :return:
+        """
         enable = self.size_int_var.get()
         if enable:
             self.enable_widgets("size")
@@ -223,18 +238,33 @@ class ESPPartitionGUI(Frame):
             self.disable_widgets("size")
 
     def disable_widgets(self, key):
+        """
+        disables all widgets with the given key fom the self.widgets dictionary.
+        :param key: key name of widget group.
+        :return: None.
+        """
         entries = self.widgets[key]
         for entry in entries:
             if entry.winfo_exists() == 1:
                 entry.config(state=DISABLED)
 
     def enable_widgets(self, key):
+        """
+        disables all widgets with the given key fom the self.widgets dictionary.
+        :param key: key name of widget group.
+        :return: None.
+        """
         entries = self.widgets[key]
         for entry in entries:
             if entry.winfo_exists() == 1:
                 entry.config(state=NORMAL)
 
     def delete_row(self, index):
+        """
+        calls destroy() on all the widgets in the given row index and adjusts spiffs size accordingly.
+        :param index: row index
+        :return: None
+        """
         self.widgets["name"][index].destroy()
         del self.ui_entries["name_{}".format(index)]
         self.widgets["type"][index].destroy()
@@ -250,27 +280,43 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
 
     def add_row(self):
+        """
+        adds a new widget row and shifts the add row button and exports button down by one position
+        :return: None
+        """
+
+        # increment last_logical_index
         self.last_logical_index += 1
+
+        # vars section start{
+        # name section
         self.ui_entries["name_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["name_{}".format(self.last_logical_index)].set(
             "new_partition_{}".format(self.last_logical_index))
 
+        # type section
         self.ui_entries["type_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["type_{}".format(self.last_logical_index)].set("data")
 
+        # sub type section
         self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
         self.last_sub_type += 0x1
         self.ui_entries["sub_type_{}".format(self.last_logical_index)].set(hex(self.last_sub_type))
 
+        # offset section
         self.ui_entries["offset_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["offset_{}".format(self.last_logical_index)].set(hex(self.next_offset))
         self.next_offset += 0x1000
 
+        # size section
         self.ui_entries["size_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["size_{}".format(self.last_logical_index)].set(hex(0x1000))
         self.spiffs_size -= 0x1000
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
+        # } - vars section end
 
+        # widgets section start {
+        # tying widget references to dictionary keys and giving pre set states.
         e = Entry(self, textvariable=self.ui_entries["name_{}".format(self.last_logical_index)])
         e.grid(row=self.last_row + 1, column=1)
         self.widgets["name"].append(e)
@@ -309,6 +355,10 @@ class ESPPartitionGUI(Frame):
         self.last_row += 1
 
     def export_to_bin(self):
+        """
+        exports current partition information in the widgets to binary.
+        :return: None
+        """
         if self.configs["arduino_path"] is None:
             tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
         else:
@@ -319,7 +369,11 @@ class ESPPartitionGUI(Frame):
             else:
                 bin_file_name += ".bin"
                 csv_file_name = bin_file_name.replace(".bin", ".csv")
+
+            # First write to csv before converting to binary
             self.write_to_csv(csv_file_name)
+
+            # convert to binary
             if os.system(
                     "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
                         self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
@@ -328,6 +382,10 @@ class ESPPartitionGUI(Frame):
                 tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
     def export_to_csv(self):
+        """
+        exports current partition information in the widgets to csv.
+        :return:
+        """
         file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
                                       filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
         if file_name is not None:
@@ -335,6 +393,10 @@ class ESPPartitionGUI(Frame):
             tkMessageBox.showinfo("Done Writing", "Done Writing to CSV")
 
     def convert_csv_to_bin(self):
+        """
+        convert given csv file from file dialog to binary.
+        :return: None.
+        """
         if self.configs["arduino_path"] is not None:
             csv_file_name = askopenfilename(defaultextension=".csv", title="Open CSV file as...",
                                             filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
@@ -342,9 +404,12 @@ class ESPPartitionGUI(Frame):
                 if ".csv" not in csv_file_name:
                     csv_file_name += ".csv"
                 bin_file_name = csv_file_name.replace(".csv", ".bin")
+
+                # convert to bin
                 if os.system(
                         "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
                             self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
+
                     tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
                 else:
                     tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
@@ -352,6 +417,10 @@ class ESPPartitionGUI(Frame):
             tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
 
     def convert_bin_to_csv(self):
+        """
+        convert given binary file from dialog to csv.
+        :return:
+        """
         if self.configs["arduino_path"] is not None:
             bin_file_name = askopenfilename(defaultextension=".csv", title="Open Binary file as...",
                                             filetypes=(("Binary File", "*.bin"), ("All Files", "*.*")))
@@ -359,9 +428,12 @@ class ESPPartitionGUI(Frame):
                 if ".bin" not in bin_file_name:
                     bin_file_name += ".bin"
                 csv_file_name = bin_file_name.replace(".bin", ".csv")
+
+                # convert to csv
                 if os.system(
                         "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
                             self.configs["arduino_path"], bin_file_name, csv_file_name)) == 0:
+
                     tkMessageBox.showinfo("Done Writing", "Done Writing to CSV File")
                 else:
                     tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
@@ -369,6 +441,12 @@ class ESPPartitionGUI(Frame):
             tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
 
     def write_to_csv(self, output_file_name):
+        """
+        takes in the current input values of the widgets on screen, forms a csv partition table and saves it with the
+        given file name.
+        :param output_file_name: file name of output csv file (absolute).
+        :return: None
+        """
         with open(output_file_name, "wb") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=",", quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerow(["# Name", "Type", "SubType", "Offset", "Size", "Flags"])
@@ -421,11 +499,19 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["size_{}".format(spiffs_index)].get(), ""])
 
     def get_nvs_index(self):
+        """
+        gets the only nvs subtype widget val index.
+        :return: (int) nvs subtype widget val index
+        """
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "nvs" in v.get():
                 return k[k.rfind("_") + 1:]
 
     def get_ota_data_index(self):
+        """
+        gets the only ota data subtype widget val index.
+        :return: (int) ota data subtype widget val index.
+        """
         for k, v in self.ui_entries.iteritems():
             if "type" in k and "data" in v.get():
                 row_index = k[k.rfind("_") + 1:]
@@ -433,6 +519,10 @@ class ESPPartitionGUI(Frame):
                     return row_index
 
     def get_ota_app_indices(self):
+        """
+        gets ota app type widget val indices.
+        :return: (list) ota app type indices.
+        """
         indices = []
         for k, v in self.ui_entries.iteritems():
             if "type" in k and "app" in v.get():
@@ -440,13 +530,21 @@ class ESPPartitionGUI(Frame):
         sub_types = {}
         for i in indices:
             sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
+
+        # sort
         sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+
+        # extract proper indices.
         for i in range(len(indices)):
             k, v = sub_types[i]
             indices[i] = k[2:]
         return indices
 
     def get_data_indices(self):
+        """
+        gets data type widget val indices.
+        :return: (list) data type indices.
+        """
         indices = []
         for k, v in self.ui_entries.iteritems():
             if "type" in k and "data" in v.get():
@@ -458,18 +556,30 @@ class ESPPartitionGUI(Frame):
         sub_types = {}
         for i in indices:
             sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
+
+        # sort
         sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+
+        # extract proper indices
         for i in range(len(indices)):
             k, v = sub_types[i]
             indices[i] = k[2:]
         return indices
 
     def get_spiffs_index(self):
+        """
+        gets the spiffs widget val index.
+        :return: (int) the spiffs widget val index.
+        """
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "spiffs" in v.get():
                 return k[k.rfind("_") + 1:]
 
     def frame_quit(self):
+        """
+        quits the application.
+        :return: None.
+        """
         if askokcancel("Quit", "Do you really wish to quit?"):
             Frame.quit(self)
 
@@ -478,6 +588,9 @@ if __name__ == "__main__":
     top = Tk()
     top.title("ESP Partition GUI")
     init_file = None
+
+    # load init file.
     if os.path.isfile("init.json"):
         init_file = json.load(open("init.json"))
+
     ESPPartitionGUI(top, init_file).mainloop()
