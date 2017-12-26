@@ -312,9 +312,9 @@ class ESPPartitionGUI(Frame):
                 bin_file_name += ".bin"
                 csv_file_name = bin_file_name.replace(".bin", ".csv")
             self.write_to_csv(csv_file_name)
-            if "Parsing CSV input" in os.system(
+            if os.system(
                     "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
-                        self.configs["arduino_path"], csv_file_name, bin_file_name)):
+                        self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
                 tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
             else:
                 tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
@@ -329,13 +329,13 @@ class ESPPartitionGUI(Frame):
     def convert_csv_to_bin(self):
         csv_file_name = askopenfilename(defaultextension=".csv", title="Save CSV file as...",
                                         filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
-        if csv_file_name is not None:
+        if csv_file_name is not "":
             if ".csv" not in csv_file_name:
                 csv_file_name += ".csv"
             bin_file_name = csv_file_name.replace(".csv", ".bin")
-            if "Parsing CSV input" in os.system(
+            if os.system(
                     "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
-                        self.configs["arduino_path"], csv_file_name, bin_file_name)):
+                        self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
                 tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
             else:
                 tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
