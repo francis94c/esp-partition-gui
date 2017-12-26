@@ -1,6 +1,7 @@
 from Tkinter import *
 import tkMessageBox
 from tkFileDialog import asksaveasfilename, askdirectory, askopenfilename
+from tkMessageBox import askokcancel
 import csv
 import os
 import json
@@ -168,6 +169,7 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Show Current Arduino Directory", command=self.show_current_arduino_directory)
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
+        self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
     def show_current_arduino_directory(self):
         if self.configs is not None:
@@ -461,6 +463,10 @@ class ESPPartitionGUI(Frame):
         for k, v in self.ui_entries.iteritems():
             if "sub_type" in k and "spiffs" in v.get():
                 return k[k.rfind("_") + 1:]
+
+    def frame_quit(self):
+        if askokcancel("Quit", "Do you really wish to quit?"):
+            Frame.quit(self)
 
 
 if __name__ == "__main__":
