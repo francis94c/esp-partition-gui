@@ -165,7 +165,11 @@ class ESPPartitionGUI(Frame):
         # File Menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="File", menu=self.file_menu)
-        self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
+        if "arduino_path" in self.configs:
+            self.file_menu.add_command(label="Set Arduino Directory [{}]".format(self.configs["arduino_path"]),
+                                       command=self.choose_arduino_directory)
+        else:
+            self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
         self.file_menu.add_command(label="Show Current Arduino Directory", command=self.show_current_arduino_directory)
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
@@ -185,6 +189,7 @@ class ESPPartitionGUI(Frame):
         if os.path.isfile(folder_string + "/hardware/espressif/esp32/tools/gen_esp32part.py"):
             self.configs["arduino_path"] = folder_string
             json.dump(self.configs, open("init.json", "w"))
+            tkMessageBox.showinfo("Success", "Arduino IDE root path was successfully set.")
         else:
             tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
