@@ -13,7 +13,7 @@ Credits: Elochukwu Ifediora C.
 
 
 class ESPPartitionGUI(Frame):
-    def __init__(self, master=None, configs=None):
+    def __init__(self, master=None, configs=None, templates=None):
         """
         Initialization of the Main GUI Form
         The Widgets are loaded and arranged here with the default ESP partition template.
@@ -25,6 +25,11 @@ class ESPPartitionGUI(Frame):
             self.configs = {}
         else:
             self.configs = configs
+
+        if templates is None:
+            self.templates = []
+        else:
+            self.templates = templates
 
         self.pack(fill=BOTH, side=TOP, expand=True)
 
@@ -59,7 +64,8 @@ class ESPPartitionGUI(Frame):
 
         # Declare and add radio buttons.
         for text, value, column in self.template_tuples:
-            b = Radiobutton(self, text=text, variable=self.template_string_var, value=value)
+            b = Radiobutton(self, text=text, variable=self.template_string_var, value=value,
+                            command=self.template_radio_button_state_changed)
             b.grid(row=0, column=column)
 
         # Declare and add Checkboxes
@@ -133,7 +139,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["type_2"].set("app")
         self.ui_entries["type_3"].set("app")
         self.ui_entries["type_4"].set("data")
-        self.ui_entries["type_5"].set("data")
+        self.ui_entries["type_5"].set("data") # spiffs
 
         self.ui_entries["flags_0"].set("          ")
         self.ui_entries["flags_1"].set("          ")
@@ -413,6 +419,22 @@ class ESPPartitionGUI(Frame):
         self.export_to_binary_button.grid(row=self.last_row + 2)
         self.last_row += 1
 
+    def template_radio_button_state_changed(self):
+        if "U_MIN" in self.template_string_var.get():
+            template = self.get_template("minimal")
+            if template is not None:
+                print("To be continued")
+
+    def reflect_template(self, template):
+        print("Reflecting...")
+
+    def get_template(self, name):
+        for template in self.templates:
+            if name is template["name"]:
+                return template
+        return None
+
+
     def export_to_bin(self):
         """
         exports current partition information in the widgets to binary.
@@ -659,7 +681,7 @@ if __name__ == "__main__":
         init_file = json.load(open("init.json"))
 
     # some partitioning templates
-    templates = [
+    partition_templates = [
         {
             "name": "minimal",
             "template":
@@ -673,4 +695,4 @@ if __name__ == "__main__":
         }
     ]
 
-    ESPPartitionGUI(top, init_file).mainloop()
+    ESPPartitionGUI(top, init_file, partition_templates).mainloop()
