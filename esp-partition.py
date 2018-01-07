@@ -519,6 +519,7 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["offset_{}".format(nvs_index)].get(),
                  self.ui_entries["size_{}".format(nvs_index)].get(),
                  self.ui_entries["flags_{}".format(nvs_index)].get(), ""])
+            # TODO: that last '""' added above may not be necessary, will have to confirm later.
 
             # ota
             ota_data_index = self.get_ota_data_index()
@@ -656,5 +657,20 @@ if __name__ == "__main__":
     # load init file.
     if os.path.isfile("init.json"):
         init_file = json.load(open("init.json"))
+
+    # some partitioning templates
+    templates = [
+        {
+            "name": "minimal",
+            "template":
+                [
+                    ["Name", "Type", "SubType" "Offset", "Size", "Flags"],
+                    ["nvs", "data", "nvs", "0x9000", "0x5000", "          "],
+                    ["app0", "app", "ota_0", "0x10000", "0x140000", "          "],
+                    ["eeprom", "data", "0x99", "0x150000", "0x1000", "          "],
+                    ["spiffs", "data", "spiffs", "0x151000", "0xAF000", "          "]
+                ]
+        }
+    ]
 
     ESPPartitionGUI(top, init_file).mainloop()
