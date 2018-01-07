@@ -186,7 +186,7 @@ class ESPPartitionGUI(Frame):
             e.grid(row=3 + i, column=5)
             self.widgets["size"].append(e)
             o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
-            o.grid(row=2 + i, column=6)
+            o.grid(row=3 + i, column=6)
             self.widgets["flags"].append(o)
 
         # Set by default disabled widgets.
@@ -329,7 +329,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
         # decrement control variables accordingly
         self.last_sub_type -= 0x1
-        self.next_offset = self.next_offset - 0x1000
+        self.next_offset -= 0x1000
 
     def add_row(self):
         """
