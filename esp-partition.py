@@ -48,14 +48,29 @@ class ESPPartitionGUI(Frame):
         self.next_offset = 0x291000
         self.spiffs_size = 0x169000
 
+        # StringVar to track radio button states.
+        self.template_string_var = StringVar()
+        self.template_string_var.set("U_DEF")
+
+        # Builder list of tuples for radio buttons.
+        self.template_tuples = [("Use ESP Default Partition", "U_DEF", 1),
+                                ("Use ESP Minimal Partition", "U_MIN", 2),
+                                ("Use Loaded Partition", "U_LD", 3)]
+
+        # Declare and add radio buttons.
+        for text, value, column in self.template_tuples:
+            b = Radiobutton(self, text=text, variable=self.template_string_var, value=value)
+            b.grid(row=0, column=column)
+
         # Declare and add Checkboxes
+        # TODO: Generate these widgets below with a loop like the one above.
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
-                                             command=self.toggle_sub_type).grid(row=0, column=3)
+                                             command=self.toggle_sub_type).grid(row=1, column=3)
         self.offset_checkbox = Checkbutton(self, text="Enable", variable=self.offset_int_var,
-                                           command=self.toggle_offset).grid(row=0, column=4)
+                                           command=self.toggle_offset).grid(row=1, column=4)
         self.size_checkbox = Checkbutton(self, text="Enable", variable=self.size_int_var,
-                                         command=self.toggle_size).grid(row=0, column=5)
-        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var).grid(row=0, column=6)
+                                         command=self.toggle_size).grid(row=1, column=5)
+        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var).grid(row=1, column=6)
 
         # Variable to hold references to widgets on screen.
         self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": []}
@@ -65,28 +80,28 @@ class ESPPartitionGUI(Frame):
             b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
             self.widgets["ar_buttons"].append(b)
             if i != 5:
-                b.grid(row=2 + i, column=0)
+                b.grid(row=3 + i, column=0)
 
         # The last '+' button.
         self.plus_button = Button(self, text="+", command=self.add_row)
-        self.plus_button.grid(row=8, column=0)
+        self.plus_button.grid(row=9, column=0)
         self.export_to_binary_button = Button(self, text="Export to Binary", command=self.export_to_bin)
-        self.export_to_binary_button.grid(row=8, column=6)
+        self.export_to_binary_button.grid(row=9, column=6)
         self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
-        self.export_to_csv_button.grid(row=8, column=5)
+        self.export_to_csv_button.grid(row=9, column=5)
 
         # The last know row modified in the grid.
-        self.last_row = 7
-        self.row_treshold = 7
+        self.last_row = 8
+        self.row_treshold = 8
         self.forgotten_logical_indices = []
 
         # Labels
-        Label(self, text="Name").grid(row=1, column=1)
-        Label(self, text="Type").grid(row=1, column=2)
-        Label(self, text="SubType").grid(row=1, column=3)
-        Label(self, text="Offset").grid(row=1, column=4)
-        Label(self, text="Size").grid(row=1, column=5)
-        Label(self, text="Flags").grid(row=1, column=6)
+        Label(self, text="Name").grid(row=2, column=1)
+        Label(self, text="Type").grid(row=2, column=2)
+        Label(self, text="SubType").grid(row=2, column=3)
+        Label(self, text="Offset").grid(row=2, column=4)
+        Label(self, text="Size").grid(row=2, column=5)
+        Label(self, text="Flags").grid(row=2, column=6)
 
         # Variable for references to inputs on the screen.
         self.ui_entries = {}
@@ -145,19 +160,19 @@ class ESPPartitionGUI(Frame):
         # Dictionary keys are used to store reference to the widget objects so as to be able to enable and disable them.
         for i in range(6):
             e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
-            e.grid(row=2 + i, column=1)
+            e.grid(row=3 + i, column=1)
             self.widgets["name"].append(e)
             o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
-            o.grid(row=2 + i, column=2)
+            o.grid(row=3 + i, column=2)
             self.widgets["type"].append(o)
             e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
-            e.grid(row=2 + i, column=3)
+            e.grid(row=3 + i, column=3)
             self.widgets["sub_type"].append(e)
             e = Entry(self, textvariable=self.ui_entries["offset_{}".format(i)])
-            e.grid(row=2 + i, column=4)
+            e.grid(row=3 + i, column=4)
             self.widgets["offset"].append(e)
             e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
-            e.grid(row=2 + i, column=5)
+            e.grid(row=3 + i, column=5)
             self.widgets["size"].append(e)
 
         # Set by default disabled widgets.
