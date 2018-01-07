@@ -51,7 +51,6 @@ class ESPPartitionGUI(Frame):
         # Control Variables
         self.last_sub_type = 0x99
         self.next_offset = 0x291000
-        self.spiffs_size = 0x16F000
 
         # StringVar to track radio button states.
         self.template_string_var = StringVar()
@@ -78,11 +77,17 @@ class ESPPartitionGUI(Frame):
                                          command=self.toggle_size).grid(row=1, column=5)
 
         self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
-                                          command=self.toggle_flags).grid(row=0, column=6)
+                                          command=self.toggle_flags).grid(row=1, column=6)
 
         # Variable to hold references to widgets on screen.
         self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": [], "flags": []}
 
+        # Very Important and may differ in boards to come.
+        self.spiffs_size = 0x16F000
+
+        self.reflect_template(templates[0])
+
+        """
         # Add buttons to screen.
         for i in range(6):
             b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
@@ -113,7 +118,7 @@ class ESPPartitionGUI(Frame):
 
         # Variable for references to inputs on the screen.
         self.ui_entries = {}
-        for i in range(6):
+        for i in range(5):
             self.ui_entries["name_{}".format(i)] = StringVar()
         for i in range(6):
             self.ui_entries["type_{}".format(i)] = StringVar()
@@ -132,24 +137,27 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["name_2"].set("app0")
         self.ui_entries["name_3"].set("app1")
         self.ui_entries["name_4"].set("eeprom")
-        self.ui_entries["name_5"].set("spiffs")
+        self.ui_entries["name_spiffs"] = StringVar()
+        self.ui_entries["name_spiffs"].set("spiffs")
 
         self.ui_entries["type_0"].set("data")
         self.ui_entries["type_1"].set("data")
         self.ui_entries["type_2"].set("app")
         self.ui_entries["type_3"].set("app")
         self.ui_entries["type_4"].set("data")
-        self.ui_entries["type_5"].set("data") # spiffs
+        self.ui_entries["type_spiffs"] = StringVar()
+        self.ui_entries["type_spiffs"].set("data")
 
         self.ui_entries["flags_0"].set("          ")
         self.ui_entries["flags_1"].set("          ")
         self.ui_entries["flags_2"].set("          ")
         self.ui_entries["flags_3"].set("          ")
         self.ui_entries["flags_4"].set("          ")
-        self.ui_entries["flags_5"].set("          ")
+        self.ui_entries["flags_spiffs"] = StringVar()
+        self.ui_entries["flags_spiffs"].set("          ")
 
         # Control variable for detecting the last logical input row index of widgets regardless of grid row.
-        self.last_logical_index = 5
+        self.last_logical_index = 4
 
         # Default Entry Items
         self.ui_entries["sub_type_0"].set("nvs")
@@ -157,25 +165,28 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["sub_type_2"].set("ota_0")
         self.ui_entries["sub_type_3"].set("ota_1")
         self.ui_entries["sub_type_4"].set("0x99")
-        self.ui_entries["sub_type_5"].set("spiffs")
+        self.ui_entries["sub_type_spiffs"] = StringVar()
+        self.ui_entries["sub_type_spiffs"].set("spiffs")
 
         self.ui_entries["offset_0"].set("0x9000")
         self.ui_entries["offset_1"].set("0xe000")
         self.ui_entries["offset_2"].set("0x10000")
         self.ui_entries["offset_3"].set("0x150000")
         self.ui_entries["offset_4"].set("0x290000")
-        self.ui_entries["offset_5"].set("0x291000")
+        self.ui_entries["offset_spiffs"] = StringVar()
+        self.ui_entries["offset_spiffs"].set("0x291000")
 
         self.ui_entries["size_0"].set("0x5000")
         self.ui_entries["size_1"].set("0x2000")
         self.ui_entries["size_2"].set("0x140000")
         self.ui_entries["size_3"].set("0x140000")
         self.ui_entries["size_4"].set("0x1000")
-        self.ui_entries["size_5"].set("0x16F000")
+        self.ui_entries["size_spiffs"] = StringVar()
+        self.ui_entries["size_spiffs"].set("0x16F000")
 
         # Entries and Option Menus.
         # Dictionary keys are used to store reference to the widget objects so as to be able to enable and disable them.
-        for i in range(6):
+        for i in range(5):
             e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
             e.grid(row=3 + i, column=1)
             self.widgets["name"].append(e)
@@ -194,6 +205,8 @@ class ESPPartitionGUI(Frame):
             o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
             o.grid(row=3 + i, column=6)
             self.widgets["flags"].append(o)
+
+        """
 
         # Set by default disabled widgets.
         self.disable_widgets("sub_type")
@@ -433,7 +446,6 @@ class ESPPartitionGUI(Frame):
             if name is template["name"]:
                 return template
         return None
-
 
     def export_to_bin(self):
         """
@@ -682,6 +694,18 @@ if __name__ == "__main__":
 
     # some partitioning templates
     partition_templates = [
+        {
+            "name": "default",
+            "template":
+                [
+                    ["Name", "Type", "SubType" "Offset", "Size", "Flags"],
+                    ["nvs", "data", "nvs", "0x9000", "0x5000", "          "],
+                    ["app0", "app", "ota_0", "0x10000", "0x140000", "          "],
+                    ["eeprom", "data", "0x99", "0x150000", "0x1000", "          "],
+                    ["spiffs", "data", "spiffs", "0x151000", "0xAF000", "          "],
+                    ["spiffs", "data", "spiffs", "0x291000", "0x16F000", "          "]
+                ]
+        },
         {
             "name": "minimal",
             "template":
