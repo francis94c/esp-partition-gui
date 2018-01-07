@@ -12,6 +12,64 @@ Credits: Elochukwu Ifediora C.
 """
 
 
+class Template:
+    def __init__(self, template):
+        self.is_valid = True
+        # For now, a simple validity check... this requires more. developers who want to create custom templates
+        # compatible with this program should be very careful to follow the rules... this is for future purposes.
+        self.is_valid = "0x" not in template[0]  # Column Headers expected here.
+        self.__index = 1
+        self.spiffs_count = 0
+        template[0] = [x.lower() for x in template[0]]
+        self.template = template
+        for x in range(1, len(self.template)):
+            self.__move_to_index(x)
+            if self.get_column("subtype") is "spiffs":
+                self.spiffs_count += 1
+        self.is_valid = self.spiffs_count <= 1
+        self.__index = 1
+
+    def has_spiffs(self):
+        return self.spiffs_count > 0
+
+    def move_to_next(self):
+        if self.__index + 1 < len(self.template):
+            self.__index += 1
+            return True
+        return False
+
+    def __move_to_index(self, index):
+        self.__index = index
+
+    def get_row_count_without_spiffs(self):
+        if self.is_valid:
+            return len(self.template) - 2
+        return -1
+
+    def move_to_first(self):
+        self.__index = 1
+
+    def get_column(self, name):
+        if self.is_valid:
+            x = 0
+            for column in self.template[0]:
+                if name == column:
+                    return self.template[self.__index][x]
+                x += 1
+        return None
+
+    def get_spiffs_property(self, _property):
+        if self.is_valid:
+            cache_index = self.__index
+            for x in range(1, len(self.template)):
+                self.__move_to_index(x)
+                if self.get_column("subtype") is "spiffs":
+                    value = self.get_column(_property)
+                    self.__index = cache_index
+                    return value
+            self.__index = cache_index
+
+
 class ESPPartitionGUI(Frame):
     def __init__(self, master=None, configs=None, templates=None):
         """
@@ -79,35 +137,6 @@ class ESPPartitionGUI(Frame):
         self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
                                           command=self.toggle_flags).grid(row=1, column=6)
 
-        # Variable to hold references to widgets on screen.
-        self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": [], "flags": []}
-
-        # Very Important and may differ in boards to come.
-        self.spiffs_size = 0x16F000
-
-        self.reflect_template(templates[0])
-
-        """
-        # Add buttons to screen.
-        for i in range(6):
-            b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
-            self.widgets["ar_buttons"].append(b)
-            if i != 5:
-                b.grid(row=3 + i, column=0)
-
-        # The last '+' button.
-        self.plus_button = Button(self, text="+", command=self.add_row)
-        self.plus_button.grid(row=9, column=0)
-        self.export_to_binary_button = Button(self, text="Export to Binary", command=self.export_to_bin)
-        self.export_to_binary_button.grid(row=9, column=6)
-        self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
-        self.export_to_csv_button.grid(row=9, column=5)
-
-        # The last know row modified in the grid.
-        self.last_row = 8
-        self.row_treshold = 8
-        self.forgotten_logical_indices = []
-
         # Labels
         Label(self, text="Name").grid(row=2, column=1)
         Label(self, text="Type").grid(row=2, column=2)
@@ -116,97 +145,26 @@ class ESPPartitionGUI(Frame):
         Label(self, text="Size").grid(row=2, column=5)
         Label(self, text="Flags").grid(row=2, column=6)
 
-        # Variable for references to inputs on the screen.
+        # Variable to hold references to widgets on screen.
+        self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": [], "flags": []}
+
         self.ui_entries = {}
-        for i in range(5):
-            self.ui_entries["name_{}".format(i)] = StringVar()
-        for i in range(6):
-            self.ui_entries["type_{}".format(i)] = StringVar()
-        for i in range(6):
-            self.ui_entries["sub_type_{}".format(i)] = StringVar()
-        for i in range(6):
-            self.ui_entries["offset_{}".format(i)] = StringVar()
-        for i in range(6):
-            self.ui_entries["size_{}".format(i)] = StringVar()
-        for i in range(6):
-            self.ui_entries["flags_{}".format(i)] = StringVar()
 
-        # Set Default Option Items.
-        self.ui_entries["name_0"].set("nvs")
-        self.ui_entries["name_1"].set("otadata")
-        self.ui_entries["name_2"].set("app0")
-        self.ui_entries["name_3"].set("app1")
-        self.ui_entries["name_4"].set("eeprom")
-        self.ui_entries["name_spiffs"] = StringVar()
-        self.ui_entries["name_spiffs"].set("spiffs")
+        self.plus_button = Button(self, text="+", command=self.add_row)
+        self.export_to_binary_button = Button(self, text="Export to Binary", command=self.export_to_bin)
+        self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
 
-        self.ui_entries["type_0"].set("data")
-        self.ui_entries["type_1"].set("data")
-        self.ui_entries["type_2"].set("app")
-        self.ui_entries["type_3"].set("app")
-        self.ui_entries["type_4"].set("data")
-        self.ui_entries["type_spiffs"] = StringVar()
-        self.ui_entries["type_spiffs"].set("data")
-
-        self.ui_entries["flags_0"].set("          ")
-        self.ui_entries["flags_1"].set("          ")
-        self.ui_entries["flags_2"].set("          ")
-        self.ui_entries["flags_3"].set("          ")
-        self.ui_entries["flags_4"].set("          ")
-        self.ui_entries["flags_spiffs"] = StringVar()
-        self.ui_entries["flags_spiffs"].set("          ")
+        self.last_row = - 1
+        self.row_treshold = - 1
+        self.forgotten_logical_indices = []
 
         # Control variable for detecting the last logical input row index of widgets regardless of grid row.
-        self.last_logical_index = 4
+        self.last_logical_index = -1
 
-        # Default Entry Items
-        self.ui_entries["sub_type_0"].set("nvs")
-        self.ui_entries["sub_type_1"].set("ota")
-        self.ui_entries["sub_type_2"].set("ota_0")
-        self.ui_entries["sub_type_3"].set("ota_1")
-        self.ui_entries["sub_type_4"].set("0x99")
-        self.ui_entries["sub_type_spiffs"] = StringVar()
-        self.ui_entries["sub_type_spiffs"].set("spiffs")
+        # Very Important and may differ in boards or templates to come.
+        self.spiffs_size = 0x16F000  # TODO: change to 0 then get and set from within reflect_template.
 
-        self.ui_entries["offset_0"].set("0x9000")
-        self.ui_entries["offset_1"].set("0xe000")
-        self.ui_entries["offset_2"].set("0x10000")
-        self.ui_entries["offset_3"].set("0x150000")
-        self.ui_entries["offset_4"].set("0x290000")
-        self.ui_entries["offset_spiffs"] = StringVar()
-        self.ui_entries["offset_spiffs"].set("0x291000")
-
-        self.ui_entries["size_0"].set("0x5000")
-        self.ui_entries["size_1"].set("0x2000")
-        self.ui_entries["size_2"].set("0x140000")
-        self.ui_entries["size_3"].set("0x140000")
-        self.ui_entries["size_4"].set("0x1000")
-        self.ui_entries["size_spiffs"] = StringVar()
-        self.ui_entries["size_spiffs"].set("0x16F000")
-
-        # Entries and Option Menus.
-        # Dictionary keys are used to store reference to the widget objects so as to be able to enable and disable them.
-        for i in range(5):
-            e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
-            e.grid(row=3 + i, column=1)
-            self.widgets["name"].append(e)
-            o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
-            o.grid(row=3 + i, column=2)
-            self.widgets["type"].append(o)
-            e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
-            e.grid(row=3 + i, column=3)
-            self.widgets["sub_type"].append(e)
-            e = Entry(self, textvariable=self.ui_entries["offset_{}".format(i)])
-            e.grid(row=3 + i, column=4)
-            self.widgets["offset"].append(e)
-            e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
-            e.grid(row=3 + i, column=5)
-            self.widgets["size"].append(e)
-            o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
-            o.grid(row=3 + i, column=6)
-            self.widgets["flags"].append(o)
-
-        """
+        self.reflect_template(templates[0]["template"])
 
         # Set by default disabled widgets.
         self.disable_widgets("sub_type")
@@ -439,12 +397,138 @@ class ESPPartitionGUI(Frame):
                 print("To be continued")
 
     def reflect_template(self, template):
-        print("Reflecting...")
+        template = Template(template)
+        if template.is_valid:
+            if len(self.ui_entries) == 0:
+                row_count = template.get_row_count_without_spiffs()
+                if row_count != -1:
+                    # Buttons
+                    for i in range(template.get_row_count_without_spiffs()):
+                        b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
+                        self.widgets["ar_buttons"].append(b)
+                        b.grid(row=3 + i, column=0)
+
+                    # The last '+' button.
+                    bottom_row = 3 + template.get_row_count_without_spiffs() + 1
+                    self.plus_button.grid(row=bottom_row, column=0)
+                    self.export_to_binary_button.grid(row=bottom_row, column=6)
+                    self.export_to_csv_button.grid(row=bottom_row, column=5)
+
+                    for i in range(row_count):
+                        self.ui_entries["name_{}".format(i)] = StringVar()
+                    for i in range(row_count):
+                        self.ui_entries["type_{}".format(i)] = StringVar()
+                    for i in range(row_count):
+                        self.ui_entries["sub_type_{}".format(i)] = StringVar()
+                    for i in range(row_count):
+                        self.ui_entries["offset_{}".format(i)] = StringVar()
+                    for i in range(row_count):
+                        self.ui_entries["size_{}".format(i)] = StringVar()
+                    for i in range(row_count):
+                        self.ui_entries["flags_{}".format(i)] = StringVar()
+
+                    self.last_logical_index = row_count - 1
+
+                    # spiffs
+                    self.ui_entries["name_spiffs"] = StringVar()
+                    self.ui_entries["name_spiffs"].set(template.get_spiffs_property("name"))
+                    self.ui_entries["type_spiffs"] = StringVar()
+                    self.ui_entries["type_spiffs"].set(template.get_spiffs_property("type"))
+                    self.ui_entries["flags_spiffs"] = StringVar()
+                    self.ui_entries["flags_spiffs"].set("          ")
+                    self.ui_entries["sub_type_spiffs"] = StringVar()
+                    self.ui_entries["sub_type_spiffs"].set(template.get_spiffs_property("subtype"))
+                    self.ui_entries["offset_spiffs"] = StringVar()
+                    self.ui_entries["offset_spiffs"].set(template.get_spiffs_property("offset"))
+                    self.ui_entries["size_spiffs"] = StringVar()
+                    self.ui_entries["size_spiffs"].set(template.get_spiffs_property("size"))
+
+                    # Names.
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["name_{}".format(i)].set(template.get_column("name"))
+                        template.move_to_next()
+
+                    # Types
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["type_{}".format(i)].set(template.get_column("type"))
+                        template.move_to_next()
+
+                    # Flags
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["flags_{}".format(i)].set(template.get_column("flags"))
+                        template.move_to_next()
+
+                    # Sub Types
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["sub_type_{}".format(i)].set(template.get_column("subtype"))
+                        template.move_to_next()
+
+                    # Offsets
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["offset_{}".format(i)].set(template.get_column("offset"))
+                        template.move_to_next()
+
+                    # Sizes
+                    template.move_to_first()
+                    for i in range(row_count):
+                        self.ui_entries["size_{}".format(i)].set(template.get_column("size"))
+                        template.move_to_next()
+
+                    # Entries and Option Menus.
+                    # Dictionary keys are used to store reference to the widget objects so as to be able to enable and
+                    # disable them.
+                    for i in range(row_count):
+                        e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
+                        e.grid(row=3 + i, column=1)
+                        self.widgets["name"].append(e)
+                        o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
+                        o.grid(row=3 + i, column=2)
+                        self.widgets["type"].append(o)
+                        e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
+                        e.grid(row=3 + i, column=3)
+                        self.widgets["sub_type"].append(e)
+                        e = Entry(self, textvariable=self.ui_entries["offset_{}".format(i)])
+                        e.grid(row=3 + i, column=4)
+                        self.widgets["offset"].append(e)
+                        e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
+                        e.grid(row=3 + i, column=5)
+                        self.widgets["size"].append(e)
+                        o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
+                        o.grid(row=3 + i, column=6)
+                        self.widgets["flags"].append(o)
+
+                    e = Entry(self, textvariable=self.ui_entries["name_spiffs"])
+                    e.grid(row=3 + row_count, column=1)
+                    self.widgets["name"].append(e)
+                    o = OptionMenu(self, self.ui_entries["type_spiffs"], "data", "app")
+                    o.grid(row=3 + row_count, column=2)
+                    self.widgets["type"].append(o)
+                    e = Entry(self, textvariable=self.ui_entries["sub_type_spiffs"])
+                    e.grid(row=3 + row_count, column=3)
+                    self.widgets["sub_type"].append(e)
+                    e = Entry(self, textvariable=self.ui_entries["offset_spiffs"])
+                    e.grid(row=3 + row_count, column=4)
+                    self.widgets["offset"].append(e)
+                    e = Entry(self, textvariable=self.ui_entries["size_spiffs"])
+                    e.grid(row=3 + row_count, column=5)
+                    self.widgets["size"].append(e)
+                    o = OptionMenu(self, self.ui_entries["flags_spiffs"], "          ", "encrypted")
+                    o.grid(row=3 + row_count, column=6)
+                    self.widgets["flags"].append(o)
+
+                    # The last know row modified in the grid.
+                    self.last_row = bottom_row - 1
+                    self.row_treshold = bottom_row - 1
 
     def get_template(self, name):
         for template in self.templates:
             if name is template["name"]:
-                return template
+                return template["template"]
         return None
 
     def export_to_bin(self):
@@ -698,11 +782,12 @@ if __name__ == "__main__":
             "name": "default",
             "template":
                 [
-                    ["Name", "Type", "SubType" "Offset", "Size", "Flags"],
+                    ["Name", "Type", "SubType", "Offset", "Size", "Flags"],
                     ["nvs", "data", "nvs", "0x9000", "0x5000", "          "],
+                    ["otadata", "data", "ota", "0xe000", "0x2000", "          "],
+                    ["app1", "app", "ota_1", "0x150000", "0x140000", "          "],
                     ["app0", "app", "ota_0", "0x10000", "0x140000", "          "],
-                    ["eeprom", "data", "0x99", "0x150000", "0x1000", "          "],
-                    ["spiffs", "data", "spiffs", "0x151000", "0xAF000", "          "],
+                    ["eeprom", "data", "0x99", "0x290000", "0x1000", "          "],
                     ["spiffs", "data", "spiffs", "0x291000", "0x16F000", "          "]
                 ]
         },
@@ -710,7 +795,7 @@ if __name__ == "__main__":
             "name": "minimal",
             "template":
                 [
-                    ["Name", "Type", "SubType" "Offset", "Size", "Flags"],
+                    ["Name", "Type", "SubType", "Offset", "Size", "Flags"],
                     ["nvs", "data", "nvs", "0x9000", "0x5000", "          "],
                     ["app0", "app", "ota_0", "0x10000", "0x140000", "          "],
                     ["eeprom", "data", "0x99", "0x150000", "0x1000", "          "],
