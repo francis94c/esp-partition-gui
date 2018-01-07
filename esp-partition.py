@@ -7,6 +7,12 @@ import os
 import json
 
 
+"""
+Author: Francis Ilechukwu
+Credits: Elochukwu Ifediora C.
+"""
+
+
 class ESPPartitionGUI(Frame):
     def __init__(self, master=None, configs=None):
         """
@@ -228,7 +234,7 @@ class ESPPartitionGUI(Frame):
 
     def toggle_size(self):
         """
-        Toggles widget states of the Entry widgets int the size column.
+        Toggles the widget states of the Entry widgets int the size column.
         :return:
         """
         enable = self.size_int_var.get()
