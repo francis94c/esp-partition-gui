@@ -30,6 +30,7 @@ class ESPPartitionGUI(Frame):
         self.grid_columnconfigure(3, weight=1)
         self.grid_columnconfigure(4, weight=1)
         self.grid_columnconfigure(5, weight=1)
+        self.grid_columnconfigure(6, weight=1)
 
         # IntVars to track checkboxes states
         self.sub_type_int_var = IntVar()
@@ -40,7 +41,7 @@ class ESPPartitionGUI(Frame):
         # Control Variables
         self.last_sub_type = 0x99
         self.next_offset = 0x291000
-        self.spiffs_size = 0x169000
+        self.spiffs_size = 0x16F000
 
         # Declare and add Checkboxes
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
@@ -49,10 +50,11 @@ class ESPPartitionGUI(Frame):
                                            command=self.toggle_offset).grid(row=0, column=4)
         self.size_checkbox = Checkbutton(self, text="Enable", variable=self.size_int_var,
                                          command=self.toggle_size).grid(row=0, column=5)
-        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var).grid(row=0, column=6)
+        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
+                                         command=self.toggle_flags).grid(row=0, column=6)
 
         # Variable to hold references to widgets on screen.
-        self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": []}
+        self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": [], "flags": []}
 
         # Add buttons to screen.
         for i in range(6):
@@ -94,6 +96,8 @@ class ESPPartitionGUI(Frame):
             self.ui_entries["offset_{}".format(i)] = StringVar()
         for i in range(6):
             self.ui_entries["size_{}".format(i)] = StringVar()
+        for i in range(6):
+            self.ui_entries["flags_{}".format(i)] = StringVar()
 
         # Set Default Option Items.
         self.ui_entries["name_0"].set("nvs")
@@ -109,6 +113,13 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["type_3"].set("app")
         self.ui_entries["type_4"].set("data")
         self.ui_entries["type_5"].set("data")
+
+        self.ui_entries["flags_0"].set("          ")
+        self.ui_entries["flags_1"].set("          ")
+        self.ui_entries["flags_2"].set("          ")
+        self.ui_entries["flags_3"].set("          ")
+        self.ui_entries["flags_4"].set("          ")
+        self.ui_entries["flags_5"].set("          ")
 
         # Control variable for detecting the last logical input row index of widgets regardless of grid row.
         self.last_logical_index = 5
@@ -133,7 +144,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["size_2"].set("0x140000")
         self.ui_entries["size_3"].set("0x140000")
         self.ui_entries["size_4"].set("0x1000")
-        self.ui_entries["size_5"].set("0x169000")
+        self.ui_entries["size_5"].set("0x16F000")
 
         # Entries and Option Menus.
         # Dictionary keys are used to store reference to the widget objects so as to be able to enable and disable them.
@@ -153,11 +164,15 @@ class ESPPartitionGUI(Frame):
             e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
             e.grid(row=2 + i, column=5)
             self.widgets["size"].append(e)
+            o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
+            o.grid(row=2 + i, column=6)
+            self.widgets["flags"].append(o)
 
         # Set by default disabled widgets.
         self.disable_widgets("sub_type")
         self.disable_widgets("offset")
         self.disable_widgets("size")
+        self.disable_widgets("flags")
 
         # Menu bar
         self.menu_bar = Menu(self)
@@ -237,6 +252,17 @@ class ESPPartitionGUI(Frame):
         else:
             self.disable_widgets("size")
 
+    def toggle_flags(self):
+        """
+        Toggles widget states of the Entry widgets int the flags column.
+        :return:
+        """
+        enable = self.flags_int_var.get()
+        if enable:
+            self.enable_widgets("flags")
+        else:
+            self.disable_widgets("flags")
+
     def disable_widgets(self, key):
         """
         disables all widgets with the given key fom the self.widgets dictionary.
@@ -275,9 +301,14 @@ class ESPPartitionGUI(Frame):
         del self.ui_entries["offset_{}".format(index)]
         self.widgets["size"][index].destroy()
         del self.ui_entries["size_{}".format(index)]
+        self.widgets["flags"][index].destroy()
+        del self.ui_entries["flags_{}".format(index)]
         self.widgets["ar_buttons"][index].destroy()
         self.spiffs_size += 0x1000
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
+        # decrement control variables accordingly
+        self.last_sub_type -= 0x1
+        self.next_offset = self.next_offset - 0x1000
 
     def add_row(self):
         """
@@ -313,6 +344,10 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["size_{}".format(self.last_logical_index)].set(hex(0x1000))
         self.spiffs_size -= 0x1000
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
+
+        # type section
+        self.ui_entries["flags_{}".format(self.last_logical_index)] = StringVar()
+        self.ui_entries["flags_{}".format(self.last_logical_index)].set("          ")
         # } - vars section end
 
         # widgets section start {
@@ -344,6 +379,9 @@ class ESPPartitionGUI(Frame):
         else:
             e.config(state=DISABLED)
         self.widgets["size"].append(e)
+        o = OptionMenu(self, self.ui_entries["flags_{}".format(self.last_logical_index)], "          ", "encrypted")
+        o.grid(row=self.last_row + 1, column=6)
+        self.widgets["flags"].append(o)
         b = Button(self, text="-", command=lambda index=self.last_logical_index: self.delete_row(index))
         b.grid(row=self.last_row + 1, column=0)
         self.widgets["ar_buttons"].append(b)
@@ -458,7 +496,8 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["type_{}".format(nvs_index)].get(),
                  self.ui_entries["sub_type_{}".format(nvs_index)].get(),
                  self.ui_entries["offset_{}".format(nvs_index)].get(),
-                 self.ui_entries["size_{}".format(nvs_index)].get(), ""])
+                 self.ui_entries["size_{}".format(nvs_index)].get(),
+                 self.ui_entries["flags_{}".format(nvs_index)].get(), ""])
 
             # ota
             ota_data_index = self.get_ota_data_index()
@@ -467,7 +506,8 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["type_{}".format(ota_data_index)].get(),
                  self.ui_entries["sub_type_{}".format(ota_data_index)].get(),
                  self.ui_entries["offset_{}".format(ota_data_index)].get(),
-                 self.ui_entries["size_{}".format(ota_data_index)].get(), ""])
+                 self.ui_entries["size_{}".format(ota_data_index)].get(),
+                 self.ui_entries["flags_{}".format(ota_data_index)].get(), ""])
 
             # app ota data
             app_ota_indices = self.get_ota_app_indices()
@@ -477,7 +517,8 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["type_{}".format(i)].get(),
                      self.ui_entries["sub_type_{}".format(i)].get(),
                      self.ui_entries["offset_{}".format(i)].get(),
-                     self.ui_entries["size_{}".format(i)].get(), ""])
+                     self.ui_entries["size_{}".format(i)].get(),
+                     self.ui_entries["flags_{}".format(i)].get(), ""])
 
             # data -- eeprom's
             data_indices = self.get_data_indices()
@@ -487,7 +528,8 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["type_{}".format(i)].get(),
                      self.ui_entries["sub_type_{}".format(i)].get(),
                      self.ui_entries["offset_{}".format(i)].get(),
-                     self.ui_entries["size_{}".format(i)].get(), ""])
+                     self.ui_entries["size_{}".format(i)].get(),
+                     self.ui_entries["flags_{}".format(i)].get(), ""])
 
             # spiffs
             spiffs_index = self.get_spiffs_index()
@@ -496,7 +538,8 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["type_{}".format(spiffs_index)].get(),
                  self.ui_entries["sub_type_{}".format(spiffs_index)].get(),
                  self.ui_entries["offset_{}".format(spiffs_index)].get(),
-                 self.ui_entries["size_{}".format(spiffs_index)].get(), ""])
+                 self.ui_entries["size_{}".format(spiffs_index)].get(),
+                 self.ui_entries["flags_{}".format(spiffs_index)].get(), ""])
 
     def get_nvs_index(self):
         """
