@@ -129,6 +129,9 @@ class ESPPartitionGUI(Frame):
                             command=self.template_radio_button_state_changed)
             b.grid(row=0, column=column)
 
+        b = Button(self, text="Refresh", command=self.refresh)
+        b.grid(row=0, column=4)
+
         # Declare and add Checkboxes
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=1, column=3)
@@ -226,6 +229,9 @@ class ESPPartitionGUI(Frame):
             tkMessageBox.showinfo("Success", "Arduino IDE root path was successfully set.")
         else:
             tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
+
+    def refresh(self):
+        self.next_offset = self.calibrate_offsets()
 
     def toggle_sub_type(self):
         """
