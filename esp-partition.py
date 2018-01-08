@@ -130,7 +130,6 @@ class ESPPartitionGUI(Frame):
             b.grid(row=0, column=column)
 
         # Declare and add Checkboxes
-        # TODO: Generate these widgets below with a loop like the one above.
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=1, column=3)
         self.offset_checkbox = Checkbutton(self, text="Enable", variable=self.offset_int_var,
