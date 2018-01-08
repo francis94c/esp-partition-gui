@@ -24,7 +24,7 @@ class Template:
         self.template = template
         for x in range(1, len(self.template)):
             self.__move_to_index(x)
-            if self.get_column("subtype") is "spiffs":
+            if self.get_column("subtype") == "spiffs":
                 self.spiffs_count += 1
         self.is_valid = self.spiffs_count <= 1
         self.__index = 1
@@ -63,11 +63,15 @@ class Template:
             cache_index = self.__index
             for x in range(1, len(self.template)):
                 self.__move_to_index(x)
-                if self.get_column("subtype") is "spiffs":
+                if self.get_column("subtype") == "spiffs":
                     value = self.get_column(_property)
                     self.__index = cache_index
                     return value
             self.__index = cache_index
+
+    def get_next_offset(self):
+        if self.is_valid:
+            return int(self.get_spiffs_property("offset"), 16)
 
 
 class ESPPartitionGUI(Frame):
@@ -108,7 +112,7 @@ class ESPPartitionGUI(Frame):
 
         # Control Variables
         self.last_sub_type = 0x99
-        self.next_offset = 0x291000
+        self.next_offset = -1
 
         # StringVar to track radio button states.
         self.template_string_var = StringVar()
@@ -303,7 +307,7 @@ class ESPPartitionGUI(Frame):
         del self.ui_entries["flags_{}".format(index)]
         self.widgets["ar_buttons"][index].destroy()
         self.spiffs_size += 0x1000
-        self.ui_entries["size_5"].set(hex(self.spiffs_size))
+        self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
         # decrement control variables accordingly
         self.last_sub_type -= 0x1
         self.next_offset -= 0x1000
@@ -336,12 +340,13 @@ class ESPPartitionGUI(Frame):
         self.ui_entries["offset_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["offset_{}".format(self.last_logical_index)].set(hex(self.next_offset))
         self.next_offset += 0x1000
+        self.ui_entries["offset_spiffs"].set(hex(self.next_offset))
 
         # size section
         self.ui_entries["size_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["size_{}".format(self.last_logical_index)].set(hex(0x1000))
         self.spiffs_size -= 0x1000
-        self.ui_entries["size_5"].set(hex(self.spiffs_size))
+        self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
 
         # type section
         self.ui_entries["flags_{}".format(self.last_logical_index)] = StringVar()
@@ -408,6 +413,10 @@ class ESPPartitionGUI(Frame):
                         self.widgets["ar_buttons"].append(b)
                         b.grid(row=3 + i, column=0)
 
+                    # an un-rendered button for calibration
+                    useless_button = Button(self)
+                    self.widgets["ar_buttons"].append(useless_button)
+
                     # The last '+' button.
                     bottom_row = 3 + template.get_row_count_without_spiffs() + 1
                     self.plus_button.grid(row=bottom_row, column=0)
@@ -427,7 +436,7 @@ class ESPPartitionGUI(Frame):
                     for i in range(row_count):
                         self.ui_entries["flags_{}".format(i)] = StringVar()
 
-                    self.last_logical_index = row_count - 1
+                    self.last_logical_index = row_count
 
                     # spiffs
                     self.ui_entries["name_spiffs"] = StringVar()
@@ -524,6 +533,7 @@ class ESPPartitionGUI(Frame):
                     # The last know row modified in the grid.
                     self.last_row = bottom_row - 1
                     self.row_treshold = bottom_row - 1
+                    self.next_offset = template.get_next_offset()
 
     def get_template(self, name):
         for template in self.templates:
