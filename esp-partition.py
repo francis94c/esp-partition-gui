@@ -168,6 +168,12 @@ class ESPPartitionGUI(Frame):
         # a call to self.reflect_template
         self.spiffs_size = 0x0
 
+        self.spiffs_widget_index = -1
+
+        self.spiffs_row_index = -1
+
+        self.ui_map = {}
+
         self.reflect_template(templates[0]["template"])
 
         # Set by default disabled widgets.
@@ -308,9 +314,45 @@ class ESPPartitionGUI(Frame):
         self.widgets["flags"][index].destroy()
         del self.ui_entries["flags_{}".format(index)]
         self.widgets["ar_buttons"][index].destroy()
+
+        del self.ui_map["ui_{}".format(index)]
+
         # decrement control variables accordingly
         self.last_sub_type -= 0x1
+        self.calibrate_ui()
         self.next_offset = self.calibrate_offsets()
+
+    def count_widget_rows(self):
+        return len(self.ui_entries)
+
+    def calibrate_ui(self):
+        buff = sorted(self.ui_map.iteritems(), key=lambda (k, v): (v, k))
+
+        # grid row start index of partitions.
+        scan_index = 3
+
+        for key, value in buff:
+            if value != scan_index:
+                self.ui_map[key] = scan_index
+            scan_index += 1
+        for key, value in self.ui_map.iteritems():
+            index = int(key[key.rfind("_") + 1:])
+            self.widgets["name"][index].grid(row=value, column=1)
+            self.widgets["type"][index].grid(row=value, column=2)
+            self.widgets["sub_type"][index].grid(row=value, column=3)
+            self.widgets["offset"][index].grid(row=value, column=4)
+            self.widgets["size"][index].grid(row=value, column=5)
+            self.widgets["flags"][index].grid(row=value, column=6)
+            if index != self.spiffs_widget_index:
+                self.widgets["ar_buttons"][index].grid(row=value, column=0)
+
+        last_row_index = buff[-1][1]
+
+        self.plus_button.grid(row=last_row_index + 1, column=0)
+        self.export_to_binary_button.grid(row=last_row_index + 1, column=6)
+        self.export_to_csv_button.grid(row=last_row_index + 1, column=5)
+
+        self.last_row = last_row_index
 
     def calibrate_offsets(self):
         # get all partition indices in group order before calibration.
@@ -328,28 +370,22 @@ class ESPPartitionGUI(Frame):
         first_offset = 0x9000
         first_size = 0x5000
 
+        sorted_indices = [x for x in sorted_indices if x is not None]
+
         # calibrate
-        # get first offset, expected to be 0x9000
-        if self.ui_entries["offset_{}".format(sorted_indices[0])].get() != "0x9000":
+        if len(sorted_indices) > 0:
+            self.ui_entries["offset_{}".format(sorted_indices[0])].set(hex(first_offset))
+            self.ui_entries["size_{}".format(sorted_indices[0])].set(hex(first_size))
+            next_offset = first_offset + int(self.ui_entries["size_{}".format(sorted_indices[0])].get(), 16)
+
             for i in range(1, len(sorted_indices)):
-                index = sorted_indices[i]
-                if index is not None:
-                    if self.ui_entries["offset_{}".format(sorted_indices[index])].get() != "" or \
-                        self.ui_entries["offset_{}".format(sorted_indices[index])].get() is not None:
-                        first_offset = int(self.ui_entries["offset_{}".format(sorted_indices[index])].get(), 16)
-                        first_size = int(self.ui_entries["size_{}".format(sorted_indices[index])].get(), 16)
+                self.ui_entries["offset_{}".format(sorted_indices[i])].set(hex(next_offset))
+                next_offset += int(self.ui_entries["size_{}".format(sorted_indices[i])].get(), 16)
 
-        self.ui_entries["offset_{}".format(sorted_indices[0])].set(hex(first_offset))
-        self.ui_entries["size_{}".format(sorted_indices[0])].set(first_size)
-        next_offset = first_offset + int(self.ui_entries["size_{}".format(sorted_indices[0])].get(), 16)
+            self.ui_entries["offset_spiffs"].set(hex(next_offset))
 
-        for i in range(1, len(sorted_indices)):
-            self.ui_entries["offset_{}".format(sorted_indices[i])].set(hex(next_offset))
-            next_offset += int(self.ui_entries["size_{}".format(sorted_indices[i])].get(), 16)
-
-        self.ui_entries["offset_spiffs"].set(hex(next_offset))
-
-        return next_offset
+            return next_offset
+        return first_offset
 
     def add_row(self):
         """
@@ -424,7 +460,7 @@ class ESPPartitionGUI(Frame):
         o = OptionMenu(self, self.ui_entries["flags_{}".format(self.last_logical_index)], "          ", "encrypted")
         o.grid(row=self.last_row + 1, column=6)
         self.widgets["flags"].append(o)
-        b = Button(self, text="-", command=lambda index=self.last_logical_index: self.delete_row(index))
+        b = Button(self, text="-", command=lambda logical_index=self.last_logical_index: self.delete_row(logical_index))
         b.grid(row=self.last_row + 1, column=0)
         self.widgets["ar_buttons"].append(b)
 
@@ -432,6 +468,7 @@ class ESPPartitionGUI(Frame):
         self.plus_button.grid(row=self.last_row + 2)
         self.export_to_csv_button.grid(row=self.last_row + 2)
         self.export_to_binary_button.grid(row=self.last_row + 2)
+        self.ui_map["ui_{}".format(self.last_logical_index)] = self.last_row + 1
         self.last_row += 1
 
     def template_radio_button_state_changed(self):
@@ -443,21 +480,26 @@ class ESPPartitionGUI(Frame):
     def reflect_template(self, template):
         template = Template(template)
         if template.is_valid:
-            if len(self.ui_entries) == 0:
+            if len(self.ui_entries) == 0 and len(self.ui_map) == 0:
+                # First time of loading template for current instance.
                 row_count = template.get_row_count_without_spiffs()
                 if row_count != -1:
-                    # Buttons
+                    # Buttons && build a logic map to hold important mapping information for all rows.
                     for i in range(template.get_row_count_without_spiffs()):
-                        b = Button(self, text="-", command=lambda index=i: self.delete_row(index))
+                        b = Button(self, text="-", command=lambda logical_index=i: self.delete_row(logical_index))
                         self.widgets["ar_buttons"].append(b)
                         b.grid(row=3 + i, column=0)
+                        self.ui_map["ui_{}".format(i)] = 3 + i
 
                     # an un-rendered button for calibration
                     useless_button = Button(self)
                     self.widgets["ar_buttons"].append(useless_button)
 
-                    # The last '+' button.
+                    # this is the index of the last used row without the generate button row included, then +1 to put
+                    # widgets on the generate button row and the plus button.
                     bottom_row = 3 + template.get_row_count_without_spiffs() + 1
+
+                    # The last '+' button and others.
                     self.plus_button.grid(row=bottom_row, column=0)
                     self.export_to_binary_button.grid(row=bottom_row, column=6)
                     self.export_to_csv_button.grid(row=bottom_row, column=5)
@@ -570,10 +612,16 @@ class ESPPartitionGUI(Frame):
                     o.grid(row=3 + row_count, column=6)
                     self.widgets["flags"].append(o)
 
+                    self.spiffs_widget_index = len(self.widgets["name"]) - 1
+                    self.spiffs_row_index = 3 + row_count
+                    self.ui_map["ui_{}".format(self.spiffs_widget_index)] = self.spiffs_row_index
+
                     # The last know row modified in the grid.
                     self.last_row = bottom_row - 1
                     self.row_treshold = bottom_row - 1
                     self.next_offset = template.get_next_offset()
+            else:
+                print ("Hello")
 
     def get_template(self, name):
         for template in self.templates:
@@ -834,8 +882,8 @@ if __name__ == "__main__":
                     ["Name", "Type", "SubType", "Offset", "Size", "Flags"],
                     ["nvs", "data", "nvs", "0x9000", "0x5000", "          "],
                     ["otadata", "data", "ota", "0xe000", "0x2000", "          "],
-                    ["app1", "app", "ota_1", "0x150000", "0x140000", "          "],
                     ["app0", "app", "ota_0", "0x10000", "0x140000", "          "],
+                    ["app1", "app", "ota_1", "0x150000", "0x140000", "          "],
                     ["eeprom", "data", "0x99", "0x290000", "0x1000", "          "],
                     ["spiffs", "data", "spiffs", "0x291000", "0x16F000", "          "]
                 ]
