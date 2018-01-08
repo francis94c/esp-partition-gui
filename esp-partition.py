@@ -301,16 +301,55 @@ class ESPPartitionGUI(Frame):
         del self.ui_entries["sub_type_{}".format(index)]
         self.widgets["offset"][index].destroy()
         del self.ui_entries["offset_{}".format(index)]
+        self.spiffs_size += int(self.ui_entries["size_{}".format(index)].get(), 16)
+        self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
         self.widgets["size"][index].destroy()
         del self.ui_entries["size_{}".format(index)]
         self.widgets["flags"][index].destroy()
         del self.ui_entries["flags_{}".format(index)]
         self.widgets["ar_buttons"][index].destroy()
-        self.spiffs_size += 0x1000
-        self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
         # decrement control variables accordingly
         self.last_sub_type -= 0x1
-        self.next_offset -= 0x1000
+        self.next_offset = self.calibrate_offsets()
+
+    def calibrate_offsets(self):
+        # get all partition indices in group order before calibration.
+        # nvs and ota first.
+        sorted_indices = [self.get_nvs_index(), self.get_ota_data_index()]
+
+        # app ota data
+        sorted_indices += self.get_ota_app_indices()
+
+        # data -- eeprom's
+        sorted_indices += self.get_data_indices()
+
+        # don't need spiffs here.
+
+        first_offset = 0x9000
+        first_size = 0x5000
+
+        # calibrate
+        # get first offset, expected to be 0x9000
+        if self.ui_entries["offset_{}".format(sorted_indices[0])].get() != "0x9000":
+            for i in range(1, len(sorted_indices)):
+                index = sorted_indices[i]
+                if index is not None:
+                    if self.ui_entries["offset_{}".format(sorted_indices[index])].get() != "" or \
+                        self.ui_entries["offset_{}".format(sorted_indices[index])].get() is not None:
+                        first_offset = int(self.ui_entries["offset_{}".format(sorted_indices[index])].get(), 16)
+                        first_size = int(self.ui_entries["size_{}".format(sorted_indices[index])].get(), 16)
+
+        self.ui_entries["offset_{}".format(sorted_indices[0])].set(hex(first_offset))
+        self.ui_entries["size_{}".format(sorted_indices[0])].set(first_size)
+        next_offset = first_offset + int(self.ui_entries["size_{}".format(sorted_indices[0])].get(), 16)
+
+        for i in range(1, len(sorted_indices)):
+            self.ui_entries["offset_{}".format(sorted_indices[i])].set(hex(next_offset))
+            next_offset += int(self.ui_entries["size_{}".format(sorted_indices[i])].get(), 16)
+
+        self.ui_entries["offset_spiffs"].set(hex(next_offset))
+
+        return next_offset
 
     def add_row(self):
         """
@@ -682,14 +721,13 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["flags_{}".format(i)].get(), ""])
 
             # spiffs
-            spiffs_index = self.get_spiffs_index()
             csv_writer.writerow(
-                [self.ui_entries["name_{}".format(spiffs_index)].get(),
-                 self.ui_entries["type_{}".format(spiffs_index)].get(),
-                 self.ui_entries["sub_type_{}".format(spiffs_index)].get(),
-                 self.ui_entries["offset_{}".format(spiffs_index)].get(),
-                 self.ui_entries["size_{}".format(spiffs_index)].get(),
-                 self.ui_entries["flags_{}".format(spiffs_index)].get(), ""])
+                [self.ui_entries["name_spiffs"].get(),
+                 self.ui_entries["sub_type_spiffs"].get(),
+                 self.ui_entries["sub_type_spiffs"].get(),
+                 self.ui_entries["offset_spiffs"].get(),
+                 self.ui_entries["size_spiffs"].get(),
+                 self.ui_entries["flags_spiffs"].get(), ""])
 
     def get_nvs_index(self):
         """
