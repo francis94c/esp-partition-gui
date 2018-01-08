@@ -209,7 +209,7 @@ class ESPPartitionGUI(Frame):
     def choose_arduino_directory(self):
         """
         Opens a directory chooser dialog to select the root path of an arduino ide installation. On selection, this
-        function will check for the gen_esp32_part.py sript in the expected folder before it can marj the selected
+        function will check for the gen_esp32_part.py script in the expected folder before it can marj the selected
         folder as valid.
         :return: None
         """
