@@ -166,7 +166,8 @@ class ESPPartitionGUI(Frame):
         self.last_logical_index = -1
 
         # Very Important and may differ in boards or templates to come.
-        self.spiffs_size = 0x16F000  # TODO: change to 0 then get and set from within reflect_template.
+        # a call to self.reflect_template
+        self.spiffs_size = 0x0
 
         self.reflect_template(templates[0]["template"])
 
@@ -490,6 +491,7 @@ class ESPPartitionGUI(Frame):
                     self.ui_entries["offset_spiffs"].set(template.get_spiffs_property("offset"))
                     self.ui_entries["size_spiffs"] = StringVar()
                     self.ui_entries["size_spiffs"].set(template.get_spiffs_property("size"))
+                    self.spiffs_size = int(template.get_spiffs_property("size"), 16)
 
                     # Names.
                     template.move_to_first()
