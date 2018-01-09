@@ -202,8 +202,7 @@ class ESPPartitionGUI(Frame):
         self.ui_entries = {}
 
         self.plus_button = Button(self, text="+", command=self.add_row)
-        self.export_to_binary_button = Button(self, text="Export to Binary", command=self.export_to_bin)
-        self.export_to_csv_button = Button(self, text="Export to CSV", command=self.export_to_csv)
+        self.generate_button = Button(self, text="Generate ->", command=self.generate)
 
         self.last_row = - 1
         self.forgotten_logical_indices = []
@@ -399,8 +398,7 @@ class ESPPartitionGUI(Frame):
         last_row_index = buff[-1][1]
 
         self.plus_button.grid(row=last_row_index + 1, column=0)
-        self.export_to_binary_button.grid(row=last_row_index + 1, column=6)
-        self.export_to_csv_button.grid(row=last_row_index + 1, column=5)
+        self.generate_button.grid(row=last_row_index + 1, column=6)
 
         self.last_row = last_row_index
 
@@ -554,8 +552,7 @@ class ESPPartitionGUI(Frame):
 
         # Shift buttons down accordingly
         self.plus_button.grid(row=row_index + shifter)
-        self.export_to_csv_button.grid(row=row_index + shifter)
-        self.export_to_binary_button.grid(row=row_index + shifter)
+        self.generate_button.grid(row=row_index + shifter)
         self.ui_map["ui_{}".format(self.last_logical_index)] = row_index
         self.last_row += 1
 
@@ -596,8 +593,7 @@ class ESPPartitionGUI(Frame):
 
                     # The last '+' button and others.
                     self.plus_button.grid(row=bottom_row, column=0)
-                    self.export_to_binary_button.grid(row=bottom_row, column=6)
-                    self.export_to_csv_button.grid(row=bottom_row, column=5)
+                    self.generate_button.grid(row=bottom_row, column=6)
 
                     for i in range(row_count):
                         self.ui_entries["name_{}".format(i)] = StringVar()
@@ -823,10 +819,11 @@ class ESPPartitionGUI(Frame):
             else:
                 tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
-    def export_to_csv(self):
+    def generate(self):
         """
-        exports current partition information in the widgets to csv.
-        :return:
+        exports current partition information in the widgets to csv in the esp32 partition dump path of your Arduino
+        IDE installation.
+        :return: None.
         """
         file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
                                       filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
