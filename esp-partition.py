@@ -201,7 +201,7 @@ class ESPPartitionGUI(Frame):
 
         self.ui_entries = {}
 
-        self.plus_button = Button(self, text="+", command=self.add_row)
+        self.plus_button = Button(self, text="+", command=self.plus_button_click)
         self.generate_button = Button(self, text="Generate ->", command=self.generate)
 
         self.last_row = - 1
@@ -220,6 +220,10 @@ class ESPPartitionGUI(Frame):
 
         self.ui_map = {}
 
+        self.is_new_data = False
+
+        self.max_spiffs_size = 0x1F7000
+
         self.reflect_template(templates[0]["template"])
 
         # Set by default disabled widgets.
@@ -234,34 +238,27 @@ class ESPPartitionGUI(Frame):
 
         # File Menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
-        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
+        self.menu_bar.add_cascade(label="Espressif", menu=self.file_menu)
         if "arduino_path" in self.configs:
             self.file_menu.add_command(label="Set Arduino Directory [{}]".format(self.configs["arduino_path"]),
                                        command=self.choose_arduino_directory)
         else:
             self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
-        self.file_menu.add_command(label="Show Current Arduino Directory", command=self.show_current_arduino_directory)
+        self.file_menu.add_command(label="New", command=self.new_partition_data)
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
-    def show_current_arduino_directory(self):
-        """
-        Shows a popup window with the current set arduino ide root path.
-        :return: None
-        """
-        if self.configs is not None:
-            if 'arduino_path' in self.configs:
-                tkMessageBox.showinfo("Current Arduino Directory", self.configs["arduino_path"])
-            else:
-                tkMessageBox.showwarning("Current Arduino Directory", "No Arduino Directory Set.")
+    def plus_button_click(self):
+        if self.is_new_data:
+            self.add_row(above_spiffs=True)
         else:
-            tkMessageBox.showwarning("Current Arduino Directory", "No Arduino Directory Set.")
+            self.add_row()
 
     def choose_arduino_directory(self):
         """
         Opens a directory chooser dialog to select the root path of an arduino ide installation. On selection, this
-        function will check for the gen_esp32_part.py script in the expected folder before it can marj the selected
+        function will check for the gen_esp32_part.py script in the expected folder before it can mark the selected
         folder as valid.
         :return: None
         """
@@ -342,6 +339,14 @@ class ESPPartitionGUI(Frame):
             if entry.winfo_exists() == 1:
                 entry.config(state=NORMAL)
 
+    def new_partition_data(self):
+        self.clear_screen()
+        self.is_new_data = True
+        self.ui_entries["size_spiffs"].set(hex(0x1F7000))
+        self.spiffs_size = self.max_spiffs_size
+        self.ui_entries["offset_spiffs"].set(hex(0x9000))
+        self.next_offset = 0x9000
+
     def delete_row(self, index):
         """
         calls destroy() on all the widgets in the given row index and adjusts spiffs size accordingly.
@@ -417,6 +422,7 @@ class ESPPartitionGUI(Frame):
 
         first_offset = 0x9000
         first_size = 0x5000
+        remainder_spiffs_size = self.max_spiffs_size
 
         sorted_indices = [x for x in sorted_indices if x is not None]
 
@@ -425,12 +431,16 @@ class ESPPartitionGUI(Frame):
             self.ui_entries["offset_{}".format(sorted_indices[0])].set(hex(first_offset))
             self.ui_entries["size_{}".format(sorted_indices[0])].set(hex(first_size))
             next_offset = first_offset + int(self.ui_entries["size_{}".format(sorted_indices[0])].get(), 16)
+            remainder_spiffs_size -= int(self.ui_entries["size_{}".format(sorted_indices[0])].get(), 16)
 
             for i in range(1, len(sorted_indices)):
                 self.ui_entries["offset_{}".format(sorted_indices[i])].set(hex(next_offset))
                 next_offset += int(self.ui_entries["size_{}".format(sorted_indices[i])].get(), 16)
+                remainder_spiffs_size -= int(self.ui_entries["size_{}".format(sorted_indices[i])].get(), 16)
 
             self.ui_entries["offset_spiffs"].set(hex(next_offset))
+            self.spiffs_size = remainder_spiffs_size
+            self.ui_entries["size_spiffs"].set(hex(remainder_spiffs_size))
 
             return next_offset
         return first_offset
@@ -572,6 +582,7 @@ class ESPPartitionGUI(Frame):
         if isinstance(template, list):
             template = Template(template)
         if template.is_valid:
+            self.is_new_data = False
             if len(self.ui_entries) == 0 and len(self.ui_map) == 0:
                 # First time of loading template for current instance.
                 row_count = template.get_row_count_without_spiffs()
