@@ -538,7 +538,7 @@ class ESPPartitionGUI(Frame):
             template = self.get_template("minimal")
             if template is not None:
                 self.reflect_template(template)
-        elif"U_DEF" in self.template_string_var.get():
+        elif "U_DEF" in self.template_string_var.get():
             template = self.get_template("default")
             if template is not None:
                 self.reflect_template(template)
@@ -823,8 +823,7 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["sub_type_{}".format(nvs_index)].get(),
                  self.ui_entries["offset_{}".format(nvs_index)].get(),
                  self.ui_entries["size_{}".format(nvs_index)].get(),
-                 self.ui_entries["flags_{}".format(nvs_index)].get(), ""])
-            # TODO: that last '""' added above may not be necessary, will have to confirm later.
+                 self.ui_entries["flags_{}".format(nvs_index)].get().replace("          ", "")])
 
             # ota
             ota_data_index = self.get_ota_data_index()
@@ -834,7 +833,7 @@ class ESPPartitionGUI(Frame):
                  self.ui_entries["sub_type_{}".format(ota_data_index)].get(),
                  self.ui_entries["offset_{}".format(ota_data_index)].get(),
                  self.ui_entries["size_{}".format(ota_data_index)].get(),
-                 self.ui_entries["flags_{}".format(ota_data_index)].get(), ""])
+                 self.ui_entries["flags_{}".format(ota_data_index)].get().replace("          ", "")])
 
             # app ota data
             app_ota_indices = self.get_ota_app_indices()
@@ -845,7 +844,7 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["sub_type_{}".format(i)].get(),
                      self.ui_entries["offset_{}".format(i)].get(),
                      self.ui_entries["size_{}".format(i)].get(),
-                     self.ui_entries["flags_{}".format(i)].get(), ""])
+                     self.ui_entries["flags_{}".format(i)].get().replace("          ", "")])
 
             # data -- eeprom's
             data_indices = self.get_data_indices()
@@ -856,16 +855,16 @@ class ESPPartitionGUI(Frame):
                      self.ui_entries["sub_type_{}".format(i)].get(),
                      self.ui_entries["offset_{}".format(i)].get(),
                      self.ui_entries["size_{}".format(i)].get(),
-                     self.ui_entries["flags_{}".format(i)].get(), ""])
+                     self.ui_entries["flags_{}".format(i)].get().replace("          ", "")])
 
             # spiffs
             csv_writer.writerow(
                 [self.ui_entries["name_spiffs"].get(),
-                 self.ui_entries["sub_type_spiffs"].get(),
+                 self.ui_entries["type_spiffs"].get(),
                  self.ui_entries["sub_type_spiffs"].get(),
                  self.ui_entries["offset_spiffs"].get(),
                  self.ui_entries["size_spiffs"].get(),
-                 self.ui_entries["flags_spiffs"].get(), ""])
+                 self.ui_entries["flags_spiffs"].get().replace("          ", "")])
 
     def get_nvs_index(self):
         """
