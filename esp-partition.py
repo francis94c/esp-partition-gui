@@ -825,11 +825,14 @@ class ESPPartitionGUI(Frame):
         IDE installation.
         :return: None.
         """
-        file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
-                                      filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
-        if file_name is not None:
-            self.write_to_csv(file_name)
-            tkMessageBox.showinfo("Done Writing", "Done Writing to CSV")
+        if self.configs["arduino_path"] is None:
+            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
+        else:
+            self.write_to_csv(
+                "{}\\hardware\\espressif\\esp32\\tools\\partitions\\{}".format(self.configs["arduino_path"],
+                                                                               "default.csv"))
+            tkMessageBox.showinfo("Done Writing CSV File",
+                                  "Done Writing to ESP32 Partition Directory and Set for Arduino IDE to use")
 
     def convert_csv_to_bin(self):
         """
