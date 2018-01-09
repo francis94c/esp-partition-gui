@@ -13,38 +13,63 @@ Credits: Elochukwu Ifediora C.
 
 
 class Template:
-    def __init__(self, template):
-        self.is_valid = True
-        # For now, a simple validity check... this requires more. developers who want to create custom templates
-        # compatible with this program should be very careful to follow the rules... this is for future purposes.
-        self.is_valid = "0x" not in template[0]  # Column Headers expected here.
-        self.__index = 1
+    def __init__(self, template=None):
         self.spiffs_count = 0
-        template[0] = [x.lower() for x in template[0]]
-        self.template = template
+        self.template = []
+        self.__index = 1
+        if template is not None:
+            self.is_valid = True
+            # For now, a simple validity check... this requires more. developers who want to create custom templates
+            # compatible with this program should be very careful to follow the rules... this is for future purposes.
+            self.is_valid = "0x" not in template[0]  # Column Headers expected here.
+            self.__index = 1
+            template[0] = [x.lower() for x in template[0]]
+            self.template = template
+            for x in range(1, len(self.template)):
+                self.__move_to_index(x)
+                if self.get_column("subtype") == "spiffs":
+                    self.spiffs_count += 1
+            self.is_valid = self.spiffs_count <= 1
+            self.__index = 1
+
+    def refresh(self):
+        self.is_valid = "0x" not in self.template[0]
+        cache_index = self.__index
         for x in range(1, len(self.template)):
             self.__move_to_index(x)
             if self.get_column("subtype") == "spiffs":
                 self.spiffs_count += 1
         self.is_valid = self.spiffs_count <= 1
-        self.__index = 1
+        self.__index = cache_index
+
+    def add_row(self, row):
+        self.template.append(row)
 
     def has_spiffs(self):
         return self.spiffs_count > 0
 
     def move_to_next(self):
-        if self.__index + 1 < len(self.template):
-            self.__index += 1
-            return True
-        return False
+        if self.is_valid:
+            if self.__index + 1 < len(self.template):
+                self.__index += 1
+                return True
+            return False
 
     def __move_to_index(self, index):
         self.__index = index
 
     def get_row_count_without_spiffs(self):
+        """
+        gets the number of partitions excluding spiffs.
+        -2 for header and spiffs
+        :return: [int] partition count.
+        """
         if self.is_valid:
             return len(self.template) - 2
         return -1
+
+    def get_row_count(self):
+        return len(self.template) - 1
 
     def move_to_first(self):
         self.__index = 1
@@ -71,7 +96,8 @@ class Template:
                 return rows
 
     def get_row(self):
-        return self.template[self.__index]
+        if self.is_valid:
+            return self.template[self.__index]
 
     def get_spiffs_property(self, _property):
         if self.is_valid:
@@ -542,9 +568,12 @@ class ESPPartitionGUI(Frame):
             template = self.get_template("default")
             if template is not None:
                 self.reflect_template(template)
+        elif "U_LD" in self.template_string_var.get():
+            self.load_partition_data_from_file()
 
     def reflect_template(self, template):
-        template = Template(template)
+        if isinstance(template, list):
+            template = Template(template)
         if template.is_valid:
             if len(self.ui_entries) == 0 and len(self.ui_map) == 0:
                 # First time of loading template for current instance.
@@ -717,6 +746,55 @@ class ESPPartitionGUI(Frame):
             if name is template["name"]:
                 return template["template"]
         return None
+
+    def load_partition_data_from_file(self):
+        file_name = askopenfilename(defaultextension=".csv", title="Open CSV File...", filetypes=(("CSV File", "*.csv"),
+                                                                                                  ("All Files", "*.*")))
+        if file_name is not None:
+            with open(file_name, "rb") as csv_file:
+                rows = csv.reader(csv_file, delimiter=",")
+                found_header = False
+                template = Template()
+                for row in rows:
+                    if "#" in row[0] and not found_header:
+                        column_header = row
+                        column_header[0] = column_header[0].replace("#", "")
+                        column_header = [x.lower() for x in column_header]
+                        column_header = [x.strip() for x in column_header]
+                        if not self.match_template_column_order(column_header):
+                            if self.set_template_column_order(column_header):
+                                found_header = True
+                                template.add_row(column_header)
+                            else:
+                                tkMessageBox.showerror("Loading Error", "Improper CSV Header, Mismatched Length")
+                                break
+                        else:
+                            found_header = True
+                            column_header = [x.strip() for x in column_header]
+                            template.add_row(column_header)
+                    elif "#" not in row[0]:
+                        row = [x.strip() for x in row]
+                        template.add_row(row)
+                template.refresh()
+                self.reflect_template(template)
+
+    def match_template_column_order(self, columns):
+        for key, value in self.template_column_order.iteritems():
+            if key != columns[value]:
+                return False
+        return True
+
+    def set_template_column_order(self, columns):
+        if len(columns) == len(self.template_column_order):
+            index = 0
+            for column in columns:
+                self.template_column_order[column] = index
+                index += 1
+            return True
+        return False
+
+    def get_output_dump_path(self):
+        return "{}\\hardware\\espressif\\esp32\\tools\\partitions".format(self.configs["arduino_path"])
 
     def export_to_bin(self):
         """
