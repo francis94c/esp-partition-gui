@@ -171,7 +171,7 @@ class ESPPartitionGUI(Frame):
         # a call to self.reflect_template
         self.spiffs_size = 0x0
 
-        self.spiffs_widget_index = -1
+        self.spiffs_logical_index = -1
 
         self.spiffs_row_index = -1
 
@@ -349,7 +349,7 @@ class ESPPartitionGUI(Frame):
             self.widgets["offset"][index].grid(row=value, column=4)
             self.widgets["size"][index].grid(row=value, column=5)
             self.widgets["flags"][index].grid(row=value, column=6)
-            if index != self.spiffs_widget_index:
+            if index != self.spiffs_logical_index:
                 self.widgets["ar_buttons"][index].grid(row=value, column=0)
 
         last_row_index = buff[-1][1]
@@ -618,15 +618,16 @@ class ESPPartitionGUI(Frame):
                     o.grid(row=3 + row_count, column=6)
                     self.widgets["flags"].append(o)
 
-                    self.spiffs_widget_index = len(self.widgets["name"]) - 1
+                    self.spiffs_logical_index = len(self.widgets["name"]) - 1
                     self.spiffs_row_index = 3 + row_count
-                    self.ui_map["ui_{}".format(self.spiffs_widget_index)] = self.spiffs_row_index
+                    self.ui_map["ui_{}".format(self.spiffs_logical_index)] = self.spiffs_row_index
 
                     # The last know row modified in the grid.
                     self.last_row = bottom_row - 1
                     self.row_treshold = bottom_row - 1
                     self.next_offset = template.get_next_offset()
             else:
+                # Has loaded a template before.
                 print ("Hello")
 
     def get_template(self, name):
