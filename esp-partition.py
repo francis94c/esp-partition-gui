@@ -174,7 +174,7 @@ class ESPPartitionGUI(Frame):
             b.grid(row=0, column=column)
 
         b = Button(self, text="Refresh", command=self.refresh)
-        b.grid(row=0, column=4)
+        b.grid(row=0, column=3)
 
         # Declare and add Checkboxes
         self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
@@ -238,14 +238,25 @@ class ESPPartitionGUI(Frame):
         # File Menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Espressif", menu=self.file_menu)
+        self.file_menu.add_command(label="New", command=self.new_partition_data)
+        self.file_menu.add_command(label="Open", command=self.load_partition_data_from_file)
+        self.recent_menu = Menu(self, tearoff=1)
+        self.file_menu.add_cascade(label="Open Recent", menu=self.recent_menu)
+        if "recent" in self.configs:
+            for path in self.configs["recent"]:
+                self.recent_menu.add_command(label=path, command=lambda x=path: self.load_partition_data_from_file(x))
+        self.file_menu.add_separator()
         if "arduino_path" in self.configs:
             self.file_menu.add_command(label="Set Arduino Directory [{}]".format(self.configs["arduino_path"]),
                                        command=self.choose_arduino_directory)
         else:
             self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
-        self.file_menu.add_command(label="New", command=self.new_partition_data)
-        self.file_menu.add_command(label="Open", command=self.load_partition_data_from_file)
+        self.file_menu.add_command(label="Preferences")
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Generate Partition", command=self.generate)
+        self.file_menu.add_separator()
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
+        self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
     def plus_button_click(self):
@@ -329,7 +340,7 @@ class ESPPartitionGUI(Frame):
 
     def enable_widgets(self, key):
         """
-        disables all widgets with the given key fom the self.widgets dictionary.
+        disables all widgets with the given key from the self.widgets dictionary.
         :param key: key name of widget group.
         :return: None.
         """
@@ -341,7 +352,7 @@ class ESPPartitionGUI(Frame):
     def new_partition_data(self):
         self.clear_screen()
         self.is_new_data = True
-        self.ui_entries["size_spiffs"].set(hex(0x1F7000))
+        self.ui_entries["size_spiffs"].set(hex(self.max_spiffs_size))
         self.spiffs_size = self.max_spiffs_size
         self.ui_entries["offset_spiffs"].set(hex(0x9000))
         self.next_offset = 0x9000
@@ -570,10 +581,12 @@ class ESPPartitionGUI(Frame):
             template = self.get_template("minimal")
             if template is not None:
                 self.reflect_template(template)
+                self.max_spiffs_size = 0x1F7000
         elif "U_DEF" in self.template_string_var.get():
             template = self.get_template("default")
             if template is not None:
                 self.reflect_template(template)
+                self.max_spiffs_size = 0x3F7000
 
     def reflect_template(self, template):
         if isinstance(template, list):
@@ -751,9 +764,11 @@ class ESPPartitionGUI(Frame):
                 return template["template"]
         return None
 
-    def load_partition_data_from_file(self):
-        file_name = askopenfilename(defaultextension=".csv", title="Open CSV File...", filetypes=(("CSV File", "*.csv"),
-                                                                                                  ("All Files", "*.*")))
+    def load_partition_data_from_file(self, file_name=None):
+        if file_name is None:
+            file_name = askopenfilename(defaultextension=".csv", title="Open CSV File...",
+                                        filetypes=(("CSV File", "*.csv"),
+                                                   ("All Files", "*.*")))
         if file_name != "":
             with open(file_name, "rb") as csv_file:
                 rows = csv.reader(csv_file, delimiter=",")
@@ -781,6 +796,11 @@ class ESPPartitionGUI(Frame):
                         template.add_row(row)
                 template.refresh()
                 self.reflect_template(template)
+                if "recent" not in self.configs:
+                    self.configs["recent"] = []
+                if file_name not in self.configs["recent"]:
+                    self.configs["recent"].append(file_name)
+                    json.dump(self.configs, open("init.json", "w"))
 
     def match_template_column_order(self, columns):
         for key, value in self.template_column_order.iteritems():
