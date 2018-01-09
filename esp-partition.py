@@ -165,8 +165,7 @@ class ESPPartitionGUI(Frame):
 
         # Builder list of tuples for radio buttons.
         self.template_tuples = [("Use ESP Default Partition", "U_DEF", 1),
-                                ("Use ESP Minimal Partition", "U_MIN", 2),
-                                ("Use Loaded Partition", "U_LD", 3)]
+                                ("Use ESP Minimal Partition", "U_MIN", 2)]
 
         # Declare and add radio buttons.
         for text, value, column in self.template_tuples:
@@ -222,7 +221,7 @@ class ESPPartitionGUI(Frame):
 
         self.is_new_data = False
 
-        self.max_spiffs_size = 0x1F7000
+        self.max_spiffs_size = 0x3F7000
 
         self.reflect_template(templates[0]["template"])
 
@@ -245,7 +244,7 @@ class ESPPartitionGUI(Frame):
         else:
             self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
         self.file_menu.add_command(label="New", command=self.new_partition_data)
-        self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
+        self.file_menu.add_command(label="Open", command=self.load_partition_data_from_file)
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
@@ -575,8 +574,6 @@ class ESPPartitionGUI(Frame):
             template = self.get_template("default")
             if template is not None:
                 self.reflect_template(template)
-        elif "U_LD" in self.template_string_var.get():
-            self.load_partition_data_from_file()
 
     def reflect_template(self, template):
         if isinstance(template, list):
@@ -757,7 +754,7 @@ class ESPPartitionGUI(Frame):
     def load_partition_data_from_file(self):
         file_name = askopenfilename(defaultextension=".csv", title="Open CSV File...", filetypes=(("CSV File", "*.csv"),
                                                                                                   ("All Files", "*.*")))
-        if file_name is not None:
+        if file_name != "":
             with open(file_name, "rb") as csv_file:
                 rows = csv.reader(csv_file, delimiter=",")
                 found_header = False
