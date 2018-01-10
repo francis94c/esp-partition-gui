@@ -4,14 +4,12 @@
     <option name="SCOPE_TYPE" value="3" />
   </component>
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/esp-partition.py" description="reflect template" line="634" />
+    <bookmark url="file://$PROJECT_DIR$/esp-partition.py" description="reflect template" line="648" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a832036f-968a-4b8a-a2c9-905d39eefe12" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/Francis.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/esp-partition.py" afterPath="$PROJECT_DIR$/esp-partition.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/init.json" afterPath="$PROJECT_DIR$/init.json" />
     </list>
     <ignored path="esp-partition-gui.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -34,8 +32,8 @@
       <file leaf-file-name="esp-partition.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/esp-partition.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="175">
-              <caret line="964" column="0" selection-start-line="964" selection-start-column="0" selection-end-line="964" selection-end-column="0" />
+            <state relative-caret-position="2883">
+              <caret line="282" column="102" selection-start-line="282" selection-start-column="102" selection-end-line="282" selection-end-column="102" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -477,7 +475,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30228758" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.34640524" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.34640524" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18080357" sideWeight="0.4869281" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18080357" sideWeight="0.5130719" order="2" side_tool="true" content_ui="tabs" />
@@ -645,8 +643,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/esp-partition.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="964" column="0" selection-start-line="964" selection-start-column="0" selection-end-line="964" selection-end-column="0" />
+        <state relative-caret-position="2883">
+          <caret line="282" column="102" selection-start-line="282" selection-start-column="102" selection-end-line="282" selection-end-column="102" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

@@ -242,6 +242,8 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Open", command=self.load_partition_data_from_file)
         self.recent_menu = Menu(self, tearoff=1)
         self.file_menu.add_cascade(label="Open Recent", menu=self.recent_menu)
+        self.file_menu.add_command(label="Save", command=self.save_file)
+        self.file_menu.add_command(label="Save As...", command=self.save_file_as)
         if "recent" in self.configs:
             for path in self.configs["recent"]:
                 self.recent_menu.add_command(label=path, command=lambda x=path: self.load_partition_data_from_file(x))
@@ -260,13 +262,25 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
         self.preference_window = None
-        self.is_preference_open = False
+        self.is_preference_open = False  # TODO: use to prevent multiple open preference windows
+        self.currently_open_file = None
 
         self.generate_preference_string_var = StringVar()
         self.dump_path_preference_string_var = StringVar()
 
         # Default.
         self.generate_preference_string_var.set("CSV")
+
+    def save_file(self):
+        if self.currently_open_file is not None:
+            self.write_to_csv(self.currently_open_file)
+
+    def save_file_as(self):
+        file_name = asksaveasfilename(defaultextension=".csv", title="Open CSV file as...",
+                                      filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
+        if file_name != "":
+            self.write_to_csv(file_name)
+            tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
 
     def show_preferences(self):
         if not self.is_preference_open:
@@ -856,6 +870,7 @@ class ESPPartitionGUI(Frame):
                 if file_name not in self.configs["recent"]:
                     self.configs["recent"].append(file_name)
                     json.dump(self.configs, open("init.json", "w"))
+                self.currently_open_file = file_name
 
     def match_template_column_order(self, columns):
         for key, value in self.template_column_order.iteritems():
