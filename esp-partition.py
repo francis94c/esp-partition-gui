@@ -852,38 +852,46 @@ class ESPPartitionGUI(Frame):
                                         filetypes=(("CSV File", "*.csv"),
                                                    ("All Files", "*.*")))
         if file_name != "":
-            with open(file_name, "rb") as csv_file:
-                rows = csv.reader(csv_file, delimiter=",")
-                found_header = False
-                template = Template()
-                for row in rows:
-                    if "#" in row[0] and not found_header:
-                        column_header = row
-                        column_header[0] = column_header[0].replace("#", "")
-                        column_header = [x.lower() for x in column_header]
-                        column_header = [x.strip() for x in column_header]
-                        if not self.match_template_column_order(column_header):
-                            if self.set_template_column_order(column_header):
-                                found_header = True
-                                template.add_row(column_header)
-                            else:
-                                tkMessageBox.showerror("Loading Error", "Improper CSV Header, Mismatched Length")
-                                break
-                        else:
-                            found_header = True
+            if os.path.isfile(file_name):
+                with open(file_name, "rb") as csv_file:
+                    rows = csv.reader(csv_file, delimiter=",")
+                    found_header = False
+                    template = Template()
+                    for row in rows:
+                        if "#" in row[0] and not found_header:
+                            column_header = row
+                            column_header[0] = column_header[0].replace("#", "")
+                            column_header = [x.lower() for x in column_header]
                             column_header = [x.strip() for x in column_header]
-                            template.add_row(column_header)
-                    elif "#" not in row[0]:
-                        row = [x.strip() for x in row]
-                        template.add_row(row)
-                template.refresh()
-                self.reflect_template(template)
-                if "recent" not in self.configs:
-                    self.configs["recent"] = []
-                if file_name not in self.configs["recent"]:
-                    self.configs["recent"].append(file_name)
-                    json.dump(self.configs, open("init.json", "w"))
-                self.currently_open_file = file_name
+                            if not self.match_template_column_order(column_header):
+                                if self.set_template_column_order(column_header):
+                                    found_header = True
+                                    template.add_row(column_header)
+                                else:
+                                    tkMessageBox.showerror("Loading Error", "Improper CSV Header, Mismatched Length")
+                                    break
+                            else:
+                                found_header = True
+                                column_header = [x.strip() for x in column_header]
+                                template.add_row(column_header)
+                        elif "#" not in row[0]:
+                            row = [x.strip() for x in row]
+                            template.add_row(row)
+                    template.refresh()
+                    self.reflect_template(template)
+                    if "recent" not in self.configs:
+                        self.configs["recent"] = []
+                    if file_name not in self.configs["recent"]:
+                        self.configs["recent"].append(file_name)
+                        json.dump(self.configs, open("init.json", "w"))
+                    self.currently_open_file = file_name
+            else:
+                if "recent" in self.configs:
+                    if file_name in self.configs["recent"]:
+                        tkMessageBox.showinfo("File Non Existent",
+                                              "The file {} does not exist anymore.".format(file_name))
+                        self.configs["recent"].remove(file_name)
+                        json.dump(self.configs, open("init.json", "w"))
 
     def match_template_column_order(self, columns):
         for key, value in self.template_column_order.iteritems():
