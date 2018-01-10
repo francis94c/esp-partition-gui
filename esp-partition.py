@@ -122,6 +122,9 @@ class ESPPartitionGUI(Frame):
         The Widgets are loaded and arranged here with the default ESP partition template.
         :param master: a Tk top level object obtained by calling Tk().
         """
+
+        self.app_name = "ESP Partition GUI"
+
         Frame.__init__(self, master)
 
         if configs is None:
@@ -264,6 +267,10 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Help", command=self.help)
+        self.file_menu.add_command(label="About", command=self.about)
+        self.file_menu.add_separator()
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
         self.preference_window = None
@@ -1178,6 +1185,13 @@ class ESPPartitionGUI(Frame):
         """
         if askokcancel("Quit", "Do you really wish to quit?"):
             Frame.quit(self)
+
+    @staticmethod
+    def help():
+        print("hello")
+
+    def about(self):
+        print(self.app_name)
 
 
 if __name__ == "__main__":
