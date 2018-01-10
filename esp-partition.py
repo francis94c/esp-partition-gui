@@ -140,6 +140,11 @@ class ESPPartitionGUI(Frame):
 
         self.pack(fill=BOTH, side=TOP, expand=True)
 
+        self.status_bar = Frame(master)
+        self.status_bar.pack(side=TOP and LEFT)
+        self.message_var = StringVar()
+        Label(self.status_bar, textvariable=self.message_var).pack(side=LEFT)
+
         # Configure all columns to be of layout weight 1.
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -274,6 +279,7 @@ class ESPPartitionGUI(Frame):
     def save_file(self):
         if self.currently_open_file is not None:
             self.write_to_csv(self.currently_open_file)
+            self.message_var.set("Partition Data Saved.")
 
     def save_file_as(self):
         file_name = asksaveasfilename(defaultextension=".csv", title="Open CSV file as...",
