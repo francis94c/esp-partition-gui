@@ -246,12 +246,12 @@ class ESPPartitionGUI(Frame):
             for path in self.configs["recent"]:
                 self.recent_menu.add_command(label=path, command=lambda x=path: self.load_partition_data_from_file(x))
         self.file_menu.add_separator()
-        if "arduino_path" in self.configs:
-            self.file_menu.add_command(label="Set Arduino Directory [{}]".format(self.configs["arduino_path"]),
-                                       command=self.choose_arduino_directory)
+        if "esp32_path" in self.configs:
+            self.file_menu.add_command(label="Set Arduino ESP32 Path [{}]".format(self.configs["esp32_path"]),
+                                       command=self.choose_esp32_path)
         else:
-            self.file_menu.add_command(label="Set Arduino Directory", command=self.choose_arduino_directory)
-        self.file_menu.add_command(label="Preferences")
+            self.file_menu.add_command(label="Set Arduino ESP32 Path", command=self.choose_esp32_path)
+        self.file_menu.add_command(label="Preferences", command=self.show_preferences)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Generate Partition", command=self.generate)
         self.file_menu.add_separator()
@@ -259,13 +259,67 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
+        self.preference_window = None
+        self.is_preference_open = False
+
+        self.generate_preference_string_var = StringVar()
+        self.dump_path_preference_string_var = StringVar()
+
+        # Default.
+        self.generate_preference_string_var.set("CSV")
+
+    def show_preferences(self):
+        if not self.is_preference_open:
+            self.preference_window = Toplevel()
+
+            self.preference_window.maxsize(width=500, height=130)
+            self.preference_window.title("Preferences")
+
+            self.preference_window.grid_columnconfigure(0, weight=1)
+            self.preference_window.grid_columnconfigure(1, weight=3)
+
+            b = Radiobutton(self.preference_window, text="Generate Only CSV",
+                            variable=self.generate_preference_string_var, value="CSV",
+                            command=self.generate_radio_button_state_changed)
+            b.grid(sticky=W)
+            b = Radiobutton(self.preference_window, text="Generate Only Bin", value="BIN",
+                            variable=self.generate_preference_string_var,
+                            command=self.generate_radio_button_state_changed)
+            b.grid(row=1, sticky=W)
+            b = Radiobutton(self.preference_window, text="Generate Both", value="BOTH",
+                            variable=self.generate_preference_string_var,
+                            command=self.generate_radio_button_state_changed)
+            b.grid(row=2, sticky=W)
+            Label(self.preference_window, text="Set Partition Dump Path:").grid(row=3, sticky=W)
+            e = Entry(self.preference_window, textvariable=self.dump_path_preference_string_var, state=DISABLED,
+                      width=70)
+            e.grid(row=4, sticky=W)
+            Button(self.preference_window, text="...", command=self.choose_dump_path).grid(row=4, column=1, sticky=W,
+                                                                                           padx=5)
+            if "generate" in self.configs:
+                self.generate_preference_string_var.set(self.configs["generate"])
+            if "dump_path" in self.configs:
+                self.dump_path_preference_string_var.set(self.configs["dump_path"])
+
+    def generate_radio_button_state_changed(self):
+        self.configs["generate"] = self.generate_preference_string_var.get()
+        json.dump(self.configs, open("init.json", "w"))
+
+    def choose_dump_path(self):
+        dump_path = askdirectory()
+        self.preference_window.focus()
+        if dump_path != "":
+            self.configs["dump_path"] = dump_path
+            json.dump(self.configs, open("init.json", "w"))
+            self.dump_path_preference_string_var.set(dump_path)
+
     def plus_button_click(self):
         if self.is_new_data:
             self.add_row(above_spiffs=True)
         else:
             self.add_row()
 
-    def choose_arduino_directory(self):
+    def choose_esp32_path(self):
         """
         Opens a directory chooser dialog to select the root path of an arduino ide installation. On selection, this
         function will check for the gen_esp32_part.py script in the expected folder before it can mark the selected
@@ -273,12 +327,13 @@ class ESPPartitionGUI(Frame):
         :return: None
         """
         folder_string = askdirectory()
-        if os.path.isfile(folder_string + "/hardware/espressif/esp32/tools/gen_esp32part.py"):
-            self.configs["arduino_path"] = folder_string
-            json.dump(self.configs, open("init.json", "w"))
-            tkMessageBox.showinfo("Success", "Arduino IDE root path was successfully set.")
-        else:
-            tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
+        if folder_string != "":
+            if os.path.isfile(folder_string + "/tools/gen_esp32part.py"):
+                self.configs["esp32_path"] = folder_string
+                json.dump(self.configs, open("init.json", "w"))
+                tkMessageBox.showinfo("Success", "Arduino IDE root path was successfully set.")
+            else:
+                tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
     def refresh(self):
         self.next_offset = self.calibrate_offsets()
@@ -818,34 +873,7 @@ class ESPPartitionGUI(Frame):
         return False
 
     def get_output_dump_path(self):
-        return "{}\\hardware\\espressif\\esp32\\tools\\partitions".format(self.configs["arduino_path"])
-
-    def export_to_bin(self):
-        """
-        exports current partition information in the widgets to binary.
-        :return: None
-        """
-        if self.configs["arduino_path"] is None:
-            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
-        else:
-            bin_file_name = asksaveasfilename(defaultextension=".bin", title="Save bin file as...",
-                                              filetypes=(("Binary File", "*.bin"), ("All Files", "*.*")))
-            if bin_file_name.endswith(".bin"):
-                csv_file_name = bin_file_name.replace(".bin", ".csv")
-            else:
-                bin_file_name += ".bin"
-                csv_file_name = bin_file_name.replace(".bin", ".csv")
-
-            # First write to csv before converting to binary
-            self.write_to_csv(csv_file_name)
-
-            # convert to binary
-            if os.system(
-                    "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
-                        self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
-                tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
-            else:
-                tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+        return "{}\\hardware\\espressif\\esp32\\tools\\partitions".format(self.configs["esp32_path"])
 
     def generate(self):
         """
@@ -853,21 +881,94 @@ class ESPPartitionGUI(Frame):
         IDE installation.
         :return: None.
         """
-        if self.configs["arduino_path"] is None:
-            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
+        if "esp32_path" not in self.configs:
+            tkMessageBox.showerror("Arduino ESP32 Path", "An Arduino ESP32 path was not set.")
         else:
-            self.write_to_csv(
-                "{}\\hardware\\espressif\\esp32\\tools\\partitions\\{}".format(self.configs["arduino_path"],
-                                                                               "default.csv"))
-            tkMessageBox.showinfo("Done Writing CSV File",
-                                  "Done Writing to ESP32 Partition Directory and Set for Arduino IDE to use")
+            if "dump_path" not in self.configs:
+                if "generate" not in self.configs:
+                    file_name = asksaveasfilename(defaultextension=".csv", title="Save CSV file as...",
+                                                  filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
+                elif self.configs["generate"] != "BOTH":
+                    file_name = asksaveasfilename(defaultextension=".{}".format(self.configs["generate"].lower()),
+                                                  title="Save {} file as...".format(self.configs["generate"].lower()),
+                                                  filetypes=(("{} File".format(self.configs["generate"].lower()),
+                                                              "*.{}".format(self.configs["generate"].lower())),
+                                                             ("All Files", "*.*")))
+                else:
+                    file_name = asksaveasfilename(title="Save BIN and CSV file as...")
+                if file_name != "":
+                    if ".csv" in file_name:
+                        self.write_to_csv(file_name)
+                        tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                    elif ".bin" in file_name:
+                        csv_file_name = file_name.replace(".bin", ".csv")
+
+                        # First write to csv before converting to binary
+                        self.write_to_csv(csv_file_name)
+
+                        # convert to binary
+                        if os.system(
+                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                    self.configs["esp32_path"], csv_file_name, file_name)) == 0:
+                            tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+                            os.remove(csv_file_name)
+                        else:
+                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                    else:
+                        csv_file_name = file_name + ".csv"
+                        file_name += ".bin"
+
+                        # First write to csv before converting to binary
+                        self.write_to_csv(csv_file_name)
+
+                        # convert to binary
+                        if os.system(
+                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                    self.configs["esp32_path"], csv_file_name, file_name)) == 0:
+                            tkMessageBox.showinfo("Done Writing", "Done Writing to Binary and CSV File")
+                        else:
+                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+            else:
+                if "generate" not in self.configs:
+                    file_name = "{}/{}".format(self.configs["dump_path"], "default.csv")
+                    self.write_to_csv(file_name)
+                    tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                elif self.configs["generate"] != "BOTH":
+                    file_name = "{}/default.{}".format(self.configs["dump_path"], self.configs["generate"].lower())
+                    if self.configs["generate"] == "BIN":
+                        csv_file_name = file_name.replace(".bin", ".csv")
+                        self.write_to_csv(csv_file_name)
+                        if os.system(
+                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                    self.configs["esp32_path"], csv_file_name, file_name)) == 0:
+                            tkMessageBox.showinfo("Done Writing {} File".format(self.configs["generate"]),
+                                                  "Done Writing {} to {}".format(self.configs["generate"],
+                                                                                 file_name))
+                            os.remove(csv_file_name)
+                        else:
+                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                    else:
+                        self.write_to_csv(file_name)
+                        tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                else:
+                    file_name = "{}/{}".format(self.configs["dump_path"], "default.csv")
+                    bin_file_name = file_name.replace(".csv", ".bin")
+                    self.write_to_csv(file_name)
+                    if os.system(
+                            "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                self.configs["esp32_path"], file_name, bin_file_name)) == 0:
+                        tkMessageBox.showinfo("Done Writing CSV and Binary File",
+                                              "Done Writing CSV and Binary to {} and {}".format(file_name,
+                                                                                                bin_file_name))
+                    else:
+                        tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
     def convert_csv_to_bin(self):
         """
         convert given csv file from file dialog to binary.
         :return: None.
         """
-        if self.configs["arduino_path"] is not None:
+        if self.configs["esp32_path"] is not None:
             csv_file_name = askopenfilename(defaultextension=".csv", title="Open CSV file as...",
                                             filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
             if csv_file_name is not "":
@@ -877,8 +978,8 @@ class ESPPartitionGUI(Frame):
 
                 # convert to bin
                 if os.system(
-                        "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
-                            self.configs["arduino_path"], csv_file_name, bin_file_name)) == 0:
+                        "python {}/tools/gen_esp32part.py --verify {} {}".format(
+                            self.configs["esp32_path"], csv_file_name, bin_file_name)) == 0:
 
                     tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
                 else:
@@ -891,7 +992,7 @@ class ESPPartitionGUI(Frame):
         convert given binary file from dialog to csv.
         :return:
         """
-        if self.configs["arduino_path"] is not None:
+        if self.configs["esp32_path"] is not None:
             bin_file_name = askopenfilename(defaultextension=".csv", title="Open Binary file as...",
                                             filetypes=(("Binary File", "*.bin"), ("All Files", "*.*")))
             if bin_file_name is not "":
@@ -901,8 +1002,8 @@ class ESPPartitionGUI(Frame):
 
                 # convert to csv
                 if os.system(
-                        "python {}\\hardware\\espressif\\esp32\\tools\\gen_esp32part.py --verify {} {}".format(
-                            self.configs["arduino_path"], bin_file_name, csv_file_name)) == 0:
+                        "python {}/tools/gen_esp32part.py --verify {} {}".format(
+                            self.configs["esp32_path"], bin_file_name, csv_file_name)) == 0:
 
                     tkMessageBox.showinfo("Done Writing", "Done Writing to CSV File")
                 else:
