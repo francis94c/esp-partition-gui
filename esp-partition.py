@@ -545,29 +545,29 @@ class ESPPartitionGUI(Frame):
         :param index: row index
         :return: None
         """
-        
-        self.widgets["name"][self.last_logical_index].destroy()
-        del self.ui_entries["name_{}".format(self.last_logical_index)]
-        self.widgets["type"][self.last_logical_index].destroy()
-        del self.ui_entries["type_{}".format(self.last_logical_index)]
-        self.widgets["sub_type"][self.last_logical_index].destroy()
-        del self.ui_entries["sub_type_{}".format(self.last_logical_index)]
-        self.widgets["offset"][self.last_logical_index].destroy()
-        del self.ui_entries["offset_{}".format(self.last_logical_index)]
-        self.spiffs_size += int(self.ui_entries["size_{}".format(self.last_logical_index)].get(), 16)
-        self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
-        self.widgets["size"][self.last_logical_index].destroy()
-        del self.ui_entries["size_{}".format(self.last_logical_index)]
-        self.widgets["flags"][self.last_logical_index].destroy()
-        del self.ui_entries["flags_{}".format(self.last_logical_index)]
-        self.widgets["ar_buttons"][self.last_logical_index].destroy()
+        if self.last_logical_index > 5:
+            self.widgets["name"][self.last_logical_index].destroy()
+            del self.ui_entries["name_{}".format(self.last_logical_index)]
+            self.widgets["type"][self.last_logical_index].destroy()
+            del self.ui_entries["type_{}".format(self.last_logical_index)]
+            self.widgets["sub_type"][self.last_logical_index].destroy()
+            del self.ui_entries["sub_type_{}".format(self.last_logical_index)]
+            self.widgets["offset"][self.last_logical_index].destroy()
+            del self.ui_entries["offset_{}".format(self.last_logical_index)]
+            self.spiffs_size += int(self.ui_entries["size_{}".format(self.last_logical_index)].get(), 16)
+            self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
+            self.widgets["size"][self.last_logical_index].destroy()
+            del self.ui_entries["size_{}".format(self.last_logical_index)]
+            self.widgets["flags"][self.last_logical_index].destroy()
+            del self.ui_entries["flags_{}".format(self.last_logical_index)]
+            self.widgets["ar_buttons"][self.last_logical_index].destroy()
 
-        del self.ui_map["ui_{}".format(self.last_logical_index)]    #Trap!
+            del self.ui_map["ui_{}".format(self.last_logical_index)]    #Trap!
 
-        # decrement control variables accordingly
-        self.last_sub_type -= 0x1
-        self.calibrate_ui()
-        self.next_offset = self.calibrate_offsets()
+            # decrement control variables accordingly
+            self.last_sub_type -= 0x1
+            self.calibrate_ui()
+            self.next_offset = self.calibrate_offsets()
 
     def add_row(self, above_spiffs=False, row=None):
         """
