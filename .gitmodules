@@ -1,0 +1,3 @@
+[submodule "sub-modules/ESP32Partitions"]
+	path = sub-modules/ESP32Partitions
+	url = https://github.com/francis94c/ESP32Partitions.git
