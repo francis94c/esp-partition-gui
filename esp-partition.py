@@ -307,8 +307,8 @@ class ESPPartitionGUI(Frame):
         self.spiffs_size += 0x1000
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
         # decrement control variables accordingly
-        self.last_sub_type -= 0x1
-        self.next_offset = self.next_offset - 0x1000
+        #self.last_sub_type -= 0x2
+        #self.next_offset = self.next_offset - 0x1000
 
     def add_row(self):
         """
@@ -331,9 +331,27 @@ class ESPPartitionGUI(Frame):
 
         # sub type section
         self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
-        self.last_sub_type += 0x1
+        for i in range(0x99, 0xFF):
+            if (hex(self.last_sub_type) == i):
+                continue
+            else:
+                self.last_sub_type = i
+                break
         self.ui_entries["sub_type_{}".format(self.last_logical_index)].set(hex(self.last_sub_type))
-
+        self.last_sub_type += 0x1
+##        self.last_logical_index_tracker = self.last_logical_index
+##        self.sub_type_tracker = self.last_sub_type
+##        while (self.last_logical_index_tracker):
+##            self.last_logical_index_tracker -= 1
+##            if (self.sub_type_tracker != 
+##            self.ui_entries["sub_type_{}".format(self.last_logical_index_tracker)].get()):
+##                self.last_sub_type = self.sub_type_tracker
+##                self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
+##                self.ui_entries["sub_type_{}".format(self.last_logical_index)].set(hex(self.last_sub_type))
+##                break
+##            self.sub_type_tracker -= 0x1
+        
+        
         # offset section
         self.ui_entries["offset_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["offset_{}".format(self.last_logical_index)].set(hex(self.next_offset))
@@ -345,7 +363,7 @@ class ESPPartitionGUI(Frame):
         self.spiffs_size -= 0x1000
         self.ui_entries["size_5"].set(hex(self.spiffs_size))
 
-        # type section
+        # flags section
         self.ui_entries["flags_{}".format(self.last_logical_index)] = StringVar()
         self.ui_entries["flags_{}".format(self.last_logical_index)].set("          ")
         # } - vars section end
