@@ -172,44 +172,45 @@ class ESPPartitionGUI(Frame):
         self.template_string_var.set("U_DEF")
 
         # Builder list of tuples for radio buttons.
-        self.template_tuples = [("Use ESP Default Partition", "U_DEF", 1),
-                                ("Use ESP Minimal Partition", "U_MIN", 2)]
+        self.template_tuples = [("Default Partition", "U_DEF", 1),
+                                ("Minimal Partition", "U_MIN", 2)]
 
         # Declare and add radio buttons.
         for text, value, column in self.template_tuples:
             b = Radiobutton(self, text=text, variable=self.template_string_var, value=value,
                             command=self.template_radio_button_state_changed)
             b.grid(row=0, column=column)
+            
 
-        b = Button(self, text="Refresh", command=self.refresh)
-        b.grid(row=0, column=3)
-
+        # Declare and add simple buttons
+        self.plus_button = Button(self, text="Add Partition", command=self.plus_button_click)
+        self.plus_button.grid(row=0, column=3)
+        b = Button(self, text="Remove Partition", command=self.remove_row)
+        b.grid(row=0, column=4)
+        b = Button(self, text="Refresh Partition", command=self.refresh)
+        b.grid(row=0, column=5)
+        self.generate_button = Button(self, text="Generate ->", command=self.generate)
+        self.generate_button.grid(row=0, column=6)
+        
         # Declare and add Checkboxes
-        self.sub_type_checkbox = Checkbutton(self, text="Enable", variable=self.sub_type_int_var,
+        self.sub_type_checkbox = Checkbutton(self, text="SubType", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=1, column=3)
-        self.offset_checkbox = Checkbutton(self, text="Enable", variable=self.offset_int_var,
+        self.offset_checkbox = Checkbutton(self, text="Offset", variable=self.offset_int_var,
                                            command=self.toggle_offset).grid(row=1, column=4)
-        self.size_checkbox = Checkbutton(self, text="Enable", variable=self.size_int_var,
+        self.size_checkbox = Checkbutton(self, text="Size", variable=self.size_int_var,
                                          command=self.toggle_size).grid(row=1, column=5)
 
-        self.flags_checkbox = Checkbutton(self, text="Enable", variable=self.flags_int_var,
+        self.flags_checkbox = Checkbutton(self, text="Flags", variable=self.flags_int_var,
                                           command=self.toggle_flags).grid(row=1, column=6)
 
         # Labels
-        Label(self, text="Name").grid(row=2, column=1)
-        Label(self, text="Type").grid(row=2, column=2)
-        Label(self, text="SubType").grid(row=2, column=3)
-        Label(self, text="Offset").grid(row=2, column=4)
-        Label(self, text="Size").grid(row=2, column=5)
-        Label(self, text="Flags").grid(row=2, column=6)
+        Label(self, text="Name").grid(row=1, column=1)
+        Label(self, text="Type").grid(row=1, column=2)
 
         # Variable to hold references to widgets on screen.
         self.widgets = {"name": [], "type": [], "sub_type": [], "ar_buttons": [], "offset": [], "size": [], "flags": []}
 
         self.ui_entries = {}
-
-        self.plus_button = Button(self, text="+", command=self.plus_button_click)
-        self.generate_button = Button(self, text="Generate ->", command=self.generate)
 
         self.last_row = - 1
         self.forgotten_logical_indices = []
@@ -348,7 +349,7 @@ class ESPPartitionGUI(Frame):
 
     def choose_esp32_path(self):
         """
-        Opens a directory chooser dialog to select the root path of an arduino ide installation. On selection, this
+        Opens a directory chooser dialog to select the root path of an arduino-esp32 installation. On selection, this
         function will check for the gen_esp32_part.py script in the expected folder before it can mark the selected
         folder as valid.
         :return: None
@@ -358,7 +359,7 @@ class ESPPartitionGUI(Frame):
             if os.path.isfile(folder_string + "/tools/gen_esp32part.py"):
                 self.configs["esp32_path"] = folder_string
                 json.dump(self.configs, open("init.json", "w"))
-                tkMessageBox.showinfo("Success", "Arduino IDE root path was successfully set.")
+                tkMessageBox.showinfo("Success", "Arduino ESP32 root path was successfully set.")
             else:
                 tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
@@ -494,8 +495,8 @@ class ESPPartitionGUI(Frame):
 
         last_row_index = buff[-1][1]
 
-        self.plus_button.grid(row=last_row_index + 1, column=0)
-        self.generate_button.grid(row=last_row_index + 1, column=6)
+        #self.plus_button.grid(row=last_row_index + 1, column=0)
+        #self.generate_button.grid(row=last_row_index + 1, column=6)
 
         self.last_row = last_row_index
 
@@ -537,6 +538,37 @@ class ESPPartitionGUI(Frame):
             return next_offset
         return first_offset
 
+    def remove_row(self):
+        """
+        On clicking "Remove Partition" button
+        calls destroy() on all the widgets in the given row index JUST created and adjusts spiffs size accordingly.
+        :param index: row index
+        :return: None
+        """
+        if self.last_logical_index > 5:
+            self.widgets["name"][self.last_logical_index].destroy()
+            del self.ui_entries["name_{}".format(self.last_logical_index)]
+            self.widgets["type"][self.last_logical_index].destroy()
+            del self.ui_entries["type_{}".format(self.last_logical_index)]
+            self.widgets["sub_type"][self.last_logical_index].destroy()
+            del self.ui_entries["sub_type_{}".format(self.last_logical_index)]
+            self.widgets["offset"][self.last_logical_index].destroy()
+            del self.ui_entries["offset_{}".format(self.last_logical_index)]
+            self.spiffs_size += int(self.ui_entries["size_{}".format(self.last_logical_index)].get(), 16)
+            self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
+            self.widgets["size"][self.last_logical_index].destroy()
+            del self.ui_entries["size_{}".format(self.last_logical_index)]
+            self.widgets["flags"][self.last_logical_index].destroy()
+            del self.ui_entries["flags_{}".format(self.last_logical_index)]
+            self.widgets["ar_buttons"][self.last_logical_index].destroy()
+
+            del self.ui_map["ui_{}".format(self.last_logical_index)]    #Trap!
+
+            # decrement control variables accordingly
+            self.last_sub_type -= 0x1
+            self.calibrate_ui()
+            self.next_offset = self.calibrate_offsets()
+
     def add_row(self, above_spiffs=False, row=None):
         """
         adds a new widget row and shifts the add row button and exports button down by one position
@@ -564,6 +596,7 @@ class ESPPartitionGUI(Frame):
 
         # sub type section
         self.ui_entries["sub_type_{}".format(self.last_logical_index)] = StringVar()
+
         if row is None:
             self.last_sub_type += 0x1
             self.ui_entries["sub_type_{}".format(self.last_logical_index)].set(hex(self.last_sub_type))
@@ -645,7 +678,7 @@ class ESPPartitionGUI(Frame):
             self.widgets["offset"][self.spiffs_logical_index].grid(row=row_index + 1)
             self.widgets["size"][self.spiffs_logical_index].grid(row=row_index + 1)
             self.widgets["flags"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.ui_map["ui_{}".format(self.spiffs_logical_index)] = row_index + 1
+            self.ui_map["ui_{}".format(self.spiffs_logical_index)].grid(row_index + 1)
 
         shifter = 1
 
@@ -653,8 +686,8 @@ class ESPPartitionGUI(Frame):
             shifter = 2
 
         # Shift buttons down accordingly
-        self.plus_button.grid(row=row_index + shifter)
-        self.generate_button.grid(row=row_index + shifter)
+        #self.plus_button.grid(row=row_index + shifter)
+        #self.generate_button.grid(row=row_index + shifter)
         self.ui_map["ui_{}".format(self.last_logical_index)] = row_index
         self.last_row += 1
 
@@ -695,8 +728,8 @@ class ESPPartitionGUI(Frame):
                     bottom_row = 3 + template.get_row_count_without_spiffs() + 1
 
                     # The last '+' button and others.
-                    self.plus_button.grid(row=bottom_row, column=0)
-                    self.generate_button.grid(row=bottom_row, column=6)
+                    #self.plus_button.grid(row=bottom_row, column=0)
+                    #self.generate_button.grid(row=bottom_row, column=6)
 
                     for i in range(row_count):
                         self.ui_entries["name_{}".format(i)] = StringVar()
@@ -1021,7 +1054,7 @@ class ESPPartitionGUI(Frame):
                 else:
                     tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
         else:
-            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
+            tkMessageBox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
 
     def convert_bin_to_csv(self):
         """
@@ -1045,7 +1078,7 @@ class ESPPartitionGUI(Frame):
                 else:
                     tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
         else:
-            tkMessageBox.showerror("Arduino IDE Root Path", "An Arduino IDE root path was not set.")
+            tkMessageBox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
 
     def write_to_csv(self, output_file_name):
         """
