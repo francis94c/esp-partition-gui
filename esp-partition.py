@@ -343,7 +343,7 @@ class ESPPartitionGUI(Frame):
 
     def plus_button_click(self):
         if self.is_new_data:
-            self.add_row(above_spiffs=True)
+            self.add_row()
         else:
             self.add_row()
 
@@ -495,12 +495,7 @@ class ESPPartitionGUI(Frame):
             else:
                 self.plus_button.grid(row=value, column=0)
 
-        last_row_index = buff[-1][1]
-
-        #self.plus_button.grid(row=last_row_index + 1, column=0)
-        #self.generate_button.grid(row=last_row_index + 1, column=6)
-
-        self.last_row = last_row_index
+        self.last_row = buff[-1][1]
 
     def calibrate_offsets(self):
         # get all partition indices in group order before calibration.
@@ -711,7 +706,7 @@ class ESPPartitionGUI(Frame):
                         self.ui_map["ui_{}".format(i)] = 2 + i
 
                     # an un-rendered button for calibration, all widgets relating to spiffs are left out of the widgets
-                    # dictionary and refrenced as members of the application frame class 'ESPPartitionGUI'.
+                    # dictionary and referenced as members of the application frame class 'ESPPartitionGUI'.
                     useless_button = Button(self)
                     self.widgets["ar_buttons"].append(useless_button)
 
