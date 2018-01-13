@@ -4,7 +4,7 @@
     <option name="SCOPE_TYPE" value="3" />
   </component>
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/esp-partition.py" description="reflect template" line="658" />
+    <bookmark url="file://$PROJECT_DIR$/esp-partition.py" description="reflect template" line="665" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a832036f-968a-4b8a-a2c9-905d39eefe12" name="Default" comment="">
@@ -33,8 +33,8 @@
       <file leaf-file-name="esp-partition.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/esp-partition.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="298" column="63" selection-start-line="298" selection-start-column="63" selection-end-line="298" selection-end-column="63" />
+            <state relative-caret-position="68">
+              <caret line="295" column="40" selection-start-line="295" selection-start-column="40" selection-end-line="295" selection-end-column="40" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -671,8 +671,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/esp-partition.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="298" column="63" selection-start-line="298" selection-start-column="63" selection-end-line="298" selection-end-column="63" />
+        <state relative-caret-position="68">
+          <caret line="295" column="40" selection-start-line="295" selection-start-column="40" selection-end-line="295" selection-end-column="40" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>

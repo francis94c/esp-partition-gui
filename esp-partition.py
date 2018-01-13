@@ -270,7 +270,7 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
         self.preference_window = None
-        self.is_preference_open = False  # TODO: use to prevent multiple open preference windows
+        self.is_preference_open = False
         self.currently_open_file = None
 
         self.generate_preference_string_var = StringVar()
@@ -292,9 +292,15 @@ class ESPPartitionGUI(Frame):
             self.write_to_csv(file_name)
             tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
 
+    def close_preference_window(self):
+        self.preference_window.destroy()
+        self.is_preference_open = False
+
     def show_preferences(self):
         if not self.is_preference_open:
+            self.is_preference_open = True
             self.preference_window = Toplevel()
+            self.preference_window.protocol("WM_DELETE_WINDOW", self.close_preference_window)
 
             self.preference_window.maxsize(width=500, height=180)
             self.preference_window.title("Preferences")
@@ -358,6 +364,7 @@ class ESPPartitionGUI(Frame):
             if os.path.isfile(folder_string + "/tools/gen_esp32part.py"):
                 self.configs["esp32_path"] = folder_string
                 json.dump(self.configs, open("init.json", "w"))
+                self.esp32_path_string_var.set(folder_string)
                 tkMessageBox.showinfo("Success", "Arduino ESP32 root path was successfully set.")
             else:
                 tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
