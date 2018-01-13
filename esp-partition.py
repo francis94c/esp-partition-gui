@@ -533,32 +533,12 @@ class ESPPartitionGUI(Frame):
         """
         On clicking "Remove Partition" button
         calls destroy() on all the widgets in the given row index JUST created and adjusts spiffs size accordingly.
-        :param index: row index
+        Edit: This is more like and undo button of add partition but with one step back.
         :return: None
         """
         if self.last_logical_index > 5:
-            self.widgets["name"][self.last_logical_index].destroy()
-            del self.ui_entries["name_{}".format(self.last_logical_index)]
-            self.widgets["type"][self.last_logical_index].destroy()
-            del self.ui_entries["type_{}".format(self.last_logical_index)]
-            self.widgets["sub_type"][self.last_logical_index].destroy()
-            del self.ui_entries["sub_type_{}".format(self.last_logical_index)]
-            self.widgets["offset"][self.last_logical_index].destroy()
-            del self.ui_entries["offset_{}".format(self.last_logical_index)]
-            self.spiffs_size += int(self.ui_entries["size_{}".format(self.last_logical_index)].get(), 16)
-            self.ui_entries["size_spiffs"].set(hex(self.spiffs_size))
-            self.widgets["size"][self.last_logical_index].destroy()
-            del self.ui_entries["size_{}".format(self.last_logical_index)]
-            self.widgets["flags"][self.last_logical_index].destroy()
-            del self.ui_entries["flags_{}".format(self.last_logical_index)]
-            self.widgets["ar_buttons"][self.last_logical_index].destroy()
-
-            del self.ui_map["ui_{}".format(self.last_logical_index)]    #Trap!
-
-            # decrement control variables accordingly
-            self.last_sub_type -= 0x1
-            self.calibrate_ui()
-            self.next_offset = self.calibrate_offsets()
+            if "name_{}".format(self.last_logical_index) in self.ui_entries:
+                self.delete_row(self.last_logical_index)
 
     def add_row(self, row=None):
         """
