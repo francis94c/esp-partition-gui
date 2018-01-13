@@ -182,7 +182,6 @@ class ESPPartitionGUI(Frame):
             b.grid(row=0, column=column)
 
         # Declare and add simple buttons
-        # TODO: Refactor this button name.
         self.add_partition_button = Button(self, text="Add Partition", command=self.plus_button_click)
         self.add_partition_button.grid(row=0, column=3)
         self.plus_button = Button(self, text="+", command=self.plus_button_click)
@@ -477,7 +476,7 @@ class ESPPartitionGUI(Frame):
         buff = sorted(self.ui_map.iteritems(), key=lambda (k, v): (v, k))
 
         # grid row start index of partitions.
-        scan_index = 3
+        scan_index = 2
 
         for key, value in buff:
             if value != scan_index:
@@ -493,6 +492,8 @@ class ESPPartitionGUI(Frame):
             self.widgets["flags"][index].grid(row=value, column=6)
             if index != self.spiffs_logical_index:
                 self.widgets["ar_buttons"][index].grid(row=value, column=0)
+            else:
+                self.plus_button.grid(row=value, column=0)
 
         last_row_index = buff[-1][1]
 
@@ -673,7 +674,7 @@ class ESPPartitionGUI(Frame):
         self.widgets["offset"][self.spiffs_logical_index].grid(row=self.last_row + 2)
         self.widgets["size"][self.spiffs_logical_index].grid(row=self.last_row + 2)
         self.widgets["flags"][self.spiffs_logical_index].grid(row=self.last_row + 2)
-        #self.ui_map["ui_{}".format(self.spiffs_logical_index)].grid(self.last_row + 2)
+        self.ui_map["ui_{}".format(self.spiffs_logical_index)] = self.last_row + 2
 
         # Shift buttons down accordingly
         self.plus_button.grid(row=self.last_row + 2)
@@ -709,9 +710,10 @@ class ESPPartitionGUI(Frame):
                         b.grid(row=2 + i, column=0)
                         self.ui_map["ui_{}".format(i)] = 2 + i
 
-                    # an un-rendered button for calibration
-                    #useless_button = Button(self)
-                    #self.widgets["ar_buttons"].append(useless_button)
+                    # an un-rendered button for calibration, all widgets relating to spiffs are left out of the widgets
+                    # dictionary and refrenced as members of the application frame class 'ESPPartitionGUI'.
+                    useless_button = Button(self)
+                    self.widgets["ar_buttons"].append(useless_button)
 
                     # this is the index of the last used row without the generate button row included, then +1 to put
                     # widgets on the generate button row and the plus button.
@@ -840,7 +842,7 @@ class ESPPartitionGUI(Frame):
                 self.clear_screen()
                 rows = template.get_rows()
                 for row in rows:
-                    self.add_row(True, row)
+                    self.add_row(row)
 
                 self.ui_entries["name_spiffs"].set(template.get_spiffs_property("name"))
                 self.ui_entries["type_spiffs"].set(template.get_spiffs_property("type"))
