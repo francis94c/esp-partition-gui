@@ -182,6 +182,7 @@ class ESPPartitionGUI(Frame):
             b.grid(row=0, column=column)
 
         # Declare and add simple buttons
+        # TODO: Refactor this button name.
         self.plus_button = Button(self, text="Add Partition", command=self.plus_button_click)
         self.plus_button.grid(row=0, column=3)
         b = Button(self, text="Remove Partition", command=self.remove_row)
