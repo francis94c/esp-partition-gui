@@ -183,8 +183,10 @@ class ESPPartitionGUI(Frame):
 
         # Declare and add simple buttons
         # TODO: Refactor this button name.
-        self.plus_button = Button(self, text="Add Partition", command=self.plus_button_click)
-        self.plus_button.grid(row=0, column=3)
+        self.add_partition_button = Button(self, text="Add Partition", command=self.plus_button_click)
+        self.add_partition_button.grid(row=0, column=3)
+        self.plus_button = Button(self, text="+", command=self.plus_button_click)
+
         b = Button(self, text="Remove Partition", command=self.remove_row)
         b.grid(row=0, column=4)
         b = Button(self, text="Refresh Partition", command=self.refresh)
@@ -192,7 +194,7 @@ class ESPPartitionGUI(Frame):
         self.generate_button = Button(self, text="Generate ->", command=self.generate)
         self.generate_button.grid(row=0, column=6)
         
-        # Declare and add Checkboxes
+        # Declare and add Checkboxes {Update These checkboxes have now become part of the header.}
         self.sub_type_checkbox = Checkbutton(self, text="SubType", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=1, column=3)
         self.offset_checkbox = Checkbutton(self, text="Offset", variable=self.offset_int_var,
@@ -232,7 +234,7 @@ class ESPPartitionGUI(Frame):
 
         self.max_spiffs_size = 0x3F7000
 
-        self.reflect_template(templates[0]["template"])
+        self.reflect_template(self.templates[0]["template"])
 
         # Set by default disabled widgets.
         self.disable_widgets("sub_type")
@@ -568,7 +570,7 @@ class ESPPartitionGUI(Frame):
             self.calibrate_ui()
             self.next_offset = self.calibrate_offsets()
 
-    def add_row(self, above_spiffs=False, row=None):
+    def add_row(self, row=None):
         """
         adds a new widget row and shifts the add row button and exports button down by one position
         :return: None
@@ -629,65 +631,54 @@ class ESPPartitionGUI(Frame):
             self.ui_entries["flags_{}".format(self.last_logical_index)].set(row[self.template_column_order["flags"]])
         # } - vars section end
 
-        row_index = self.last_row
-        if not above_spiffs:
-            row_index += 1
-
         # widgets section start {
         # tying widget references to dictionary keys and giving pre set states.
         e = Entry(self, textvariable=self.ui_entries["name_{}".format(self.last_logical_index)])
-        e.grid(row=row_index, column=1)
+        e.grid(row=self.last_row + 1, column=1)
         self.widgets["name"].append(e)
         o = OptionMenu(self, self.ui_entries["type_{}".format(self.last_logical_index)], "data", "app")
-        o.grid(row=row_index, column=2)
+        o.grid(row=self.last_row + 1, column=2)
         self.widgets["type"].append(o)
         e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(self.last_logical_index)])
-        e.grid(row=row_index, column=3)
+        e.grid(row=self.last_row + 1, column=3)
         if self.sub_type_int_var.get():
             e.config(state=NORMAL)
         else:
             e.config(state=DISABLED)
         self.widgets["sub_type"].append(e)
         e = Entry(self, textvariable=self.ui_entries["offset_{}".format(self.last_logical_index)])
-        e.grid(row=row_index, column=4)
+        e.grid(row=self.last_row + 1, column=4)
         if self.offset_int_var.get():
             e.config(state=NORMAL)
         else:
             e.config(state=DISABLED)
         self.widgets["offset"].append(e)
         e = Entry(self, textvariable=self.ui_entries["size_{}".format(self.last_logical_index)])
-        e.grid(row=row_index, column=5)
+        e.grid(row=self.last_row + 1, column=5)
         if self.size_int_var.get():
             e.config(state=NORMAL)
         else:
             e.config(state=DISABLED)
         self.widgets["size"].append(e)
         o = OptionMenu(self, self.ui_entries["flags_{}".format(self.last_logical_index)], "          ", "encrypted")
-        o.grid(row=row_index, column=6)
+        o.grid(row=self.last_row + 1, column=6)
         self.widgets["flags"].append(o)
         b = Button(self, text="-", command=lambda logical_index=self.last_logical_index: self.delete_row(logical_index))
-        b.grid(row=row_index, column=0)
+        b.grid(row=self.last_row + 1, column=0)
         self.widgets["ar_buttons"].append(b)
 
-        # shift spiffs?
-        if above_spiffs:
-            self.widgets["name"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.widgets["type"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.widgets["sub_type"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.widgets["offset"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.widgets["size"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.widgets["flags"][self.spiffs_logical_index].grid(row=row_index + 1)
-            self.ui_map["ui_{}".format(self.spiffs_logical_index)].grid(row_index + 1)
-
-        shifter = 1
-
-        if above_spiffs:
-            shifter = 2
+        self.widgets["name"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        self.widgets["type"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        self.widgets["sub_type"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        self.widgets["offset"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        self.widgets["size"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        self.widgets["flags"][self.spiffs_logical_index].grid(row=self.last_row + 2)
+        #self.ui_map["ui_{}".format(self.spiffs_logical_index)].grid(self.last_row + 2)
 
         # Shift buttons down accordingly
-        #self.plus_button.grid(row=row_index + shifter)
+        self.plus_button.grid(row=self.last_row + 2)
         #self.generate_button.grid(row=row_index + shifter)
-        self.ui_map["ui_{}".format(self.last_logical_index)] = row_index
+        self.ui_map["ui_{}".format(self.last_logical_index)] = self.last_row + 1
         self.last_row += 1
 
     def template_radio_button_state_changed(self):
@@ -715,20 +706,19 @@ class ESPPartitionGUI(Frame):
                     for i in range(template.get_row_count_without_spiffs()):
                         b = Button(self, text="-", command=lambda logical_index=i: self.delete_row(logical_index))
                         self.widgets["ar_buttons"].append(b)
-                        b.grid(row=3 + i, column=0)
-                        self.ui_map["ui_{}".format(i)] = 3 + i
+                        b.grid(row=2 + i, column=0)
+                        self.ui_map["ui_{}".format(i)] = 2 + i
 
                     # an un-rendered button for calibration
-                    useless_button = Button(self)
-                    self.widgets["ar_buttons"].append(useless_button)
+                    #useless_button = Button(self)
+                    #self.widgets["ar_buttons"].append(useless_button)
 
                     # this is the index of the last used row without the generate button row included, then +1 to put
                     # widgets on the generate button row and the plus button.
-                    bottom_row = 3 + template.get_row_count_without_spiffs() + 1
+                    bottom_row = 2 + template.get_row_count_without_spiffs()
 
                     # The last '+' button and others.
-                    #self.plus_button.grid(row=bottom_row, column=0)
-                    #self.generate_button.grid(row=bottom_row, column=6)
+                    self.plus_button.grid(row=bottom_row, column=0)
 
                     for i in range(row_count):
                         self.ui_entries["name_{}".format(i)] = StringVar()
@@ -801,45 +791,45 @@ class ESPPartitionGUI(Frame):
                     # disable them.
                     for i in range(row_count):
                         e = Entry(self, textvariable=self.ui_entries["name_{}".format(i)])
-                        e.grid(row=3 + i, column=1)
+                        e.grid(row=2 + i, column=1)
                         self.widgets["name"].append(e)
                         o = OptionMenu(self, self.ui_entries["type_{}".format(i)], "data", "app")
-                        o.grid(row=3 + i, column=2)
+                        o.grid(row=2 + i, column=2)
                         self.widgets["type"].append(o)
                         e = Entry(self, textvariable=self.ui_entries["sub_type_{}".format(i)])
-                        e.grid(row=3 + i, column=3)
+                        e.grid(row=2 + i, column=3)
                         self.widgets["sub_type"].append(e)
                         e = Entry(self, textvariable=self.ui_entries["offset_{}".format(i)])
-                        e.grid(row=3 + i, column=4)
+                        e.grid(row=2 + i, column=4)
                         self.widgets["offset"].append(e)
                         e = Entry(self, textvariable=self.ui_entries["size_{}".format(i)])
-                        e.grid(row=3 + i, column=5)
+                        e.grid(row=2 + i, column=5)
                         self.widgets["size"].append(e)
                         o = OptionMenu(self, self.ui_entries["flags_{}".format(i)], "          ", "encrypted")
-                        o.grid(row=3 + i, column=6)
+                        o.grid(row=2 + i, column=6)
                         self.widgets["flags"].append(o)
 
                     e = Entry(self, textvariable=self.ui_entries["name_spiffs"])
-                    e.grid(row=3 + row_count, column=1)
+                    e.grid(row=2 + row_count, column=1)
                     self.widgets["name"].append(e)
                     o = OptionMenu(self, self.ui_entries["type_spiffs"], "data", "app")
-                    o.grid(row=3 + row_count, column=2)
+                    o.grid(row=2 + row_count, column=2)
                     self.widgets["type"].append(o)
                     e = Entry(self, textvariable=self.ui_entries["sub_type_spiffs"])
-                    e.grid(row=3 + row_count, column=3)
+                    e.grid(row=2 + row_count, column=3)
                     self.widgets["sub_type"].append(e)
                     e = Entry(self, textvariable=self.ui_entries["offset_spiffs"])
-                    e.grid(row=3 + row_count, column=4)
+                    e.grid(row=2 + row_count, column=4)
                     self.widgets["offset"].append(e)
                     e = Entry(self, textvariable=self.ui_entries["size_spiffs"])
-                    e.grid(row=3 + row_count, column=5)
+                    e.grid(row=2 + row_count, column=5)
                     self.widgets["size"].append(e)
                     o = OptionMenu(self, self.ui_entries["flags_spiffs"], "          ", "encrypted")
-                    o.grid(row=3 + row_count, column=6)
+                    o.grid(row=2 + row_count, column=6)
                     self.widgets["flags"].append(o)
 
                     self.spiffs_logical_index = len(self.widgets["name"]) - 1
-                    self.spiffs_row_index = 3 + row_count
+                    self.spiffs_row_index = 2 + row_count
                     self.ui_map["ui_{}".format(self.spiffs_logical_index)] = self.spiffs_row_index
 
                     # The last know row modified in the grid.
