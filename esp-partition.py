@@ -182,9 +182,9 @@ class ESPPartitionGUI(Frame):
             b.grid(row=0, column=column)
 
         # Declare and add simple buttons
-        self.add_partition_button = Button(self, text="Add Partition", command=self.plus_button_click)
+        self.add_partition_button = Button(self, text="Add Partition", command=self.add_row)
         self.add_partition_button.grid(row=0, column=3)
-        self.plus_button = Button(self, text="+", command=self.plus_button_click)
+        self.plus_button = Button(self, text="+", command=self.add_row)
 
         b = Button(self, text="Remove Partition", command=self.remove_row)
         b.grid(row=0, column=4)
@@ -340,12 +340,6 @@ class ESPPartitionGUI(Frame):
             self.configs["dump_path"] = dump_path
             json.dump(self.configs, open("init.json", "w"))
             self.dump_path_preference_string_var.set(dump_path)
-
-    def plus_button_click(self):
-        if self.is_new_data:
-            self.add_row()
-        else:
-            self.add_row()
 
     def choose_esp32_path(self):
         """
