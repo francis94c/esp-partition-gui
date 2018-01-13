@@ -192,7 +192,7 @@ class ESPPartitionGUI(Frame):
         b.grid(row=0, column=5)
         self.generate_button = Button(self, text="Generate ->", command=self.generate)
         self.generate_button.grid(row=0, column=6)
-        
+
         # Declare and add Checkboxes {Update These checkboxes have now become part of the header.}
         self.sub_type_checkbox = Checkbutton(self, text="SubType", variable=self.sub_type_int_var,
                                              command=self.toggle_sub_type).grid(row=1, column=3)
@@ -261,11 +261,6 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Generate Partition", command=self.generate)
         self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
         self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
-        if "esp32_path" in self.configs:
-            self.file_menu.add_command(label="Set Arduino ESP32 Path [{}]".format(self.configs["esp32_path"]),
-                                       command=self.choose_esp32_path)
-        else:
-            self.file_menu.add_command(label="Set Arduino ESP32 Path", command=self.choose_esp32_path)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Preferences", command=self.show_preferences)
         self.file_menu.add_separator()
@@ -280,6 +275,7 @@ class ESPPartitionGUI(Frame):
 
         self.generate_preference_string_var = StringVar()
         self.dump_path_preference_string_var = StringVar()
+        self.esp32_path_string_var = StringVar()
 
         # Default.
         self.generate_preference_string_var.set("CSV")
@@ -300,7 +296,7 @@ class ESPPartitionGUI(Frame):
         if not self.is_preference_open:
             self.preference_window = Toplevel()
 
-            self.preference_window.maxsize(width=500, height=130)
+            self.preference_window.maxsize(width=500, height=180)
             self.preference_window.title("Preferences")
 
             self.preference_window.grid_columnconfigure(0, weight=1)
@@ -318,16 +314,25 @@ class ESPPartitionGUI(Frame):
                             variable=self.generate_preference_string_var,
                             command=self.generate_radio_button_state_changed)
             b.grid(row=2, sticky=W)
-            Label(self.preference_window, text="Set Partition Dump Path:").grid(row=3, sticky=W)
-            e = Entry(self.preference_window, textvariable=self.dump_path_preference_string_var, state=DISABLED,
+
+            Label(self.preference_window, text="Set Arduino ESP32 Path:").grid(row=3, sticky=W)
+            e = Entry(self.preference_window, textvariable=self.esp32_path_string_var, state=DISABLED,
                       width=70)
             e.grid(row=4, sticky=W)
-            Button(self.preference_window, text="...", command=self.choose_dump_path).grid(row=4, column=1, sticky=W,
+            Button(self.preference_window, text="...", command=self.choose_esp32_path).grid(row=4, column=1, sticky=W,
+                                                                                            padx=5)
+            Label(self.preference_window, text="Set Partition Dump Path:").grid(row=5, sticky=W)
+            e = Entry(self.preference_window, textvariable=self.dump_path_preference_string_var, state=DISABLED,
+                      width=70)
+            e.grid(row=6, sticky=W)
+            Button(self.preference_window, text="...", command=self.choose_dump_path).grid(row=6, column=1, sticky=W,
                                                                                            padx=5)
             if "generate" in self.configs:
                 self.generate_preference_string_var.set(self.configs["generate"])
             if "dump_path" in self.configs:
                 self.dump_path_preference_string_var.set(self.configs["dump_path"])
+            if "esp32_path" in self.configs:
+                self.esp32_path_string_var.set(self.configs["esp32_path"])
 
     def generate_radio_button_state_changed(self):
         self.configs["generate"] = self.generate_preference_string_var.get()
@@ -647,7 +652,6 @@ class ESPPartitionGUI(Frame):
 
         # Shift buttons down accordingly
         self.plus_button.grid(row=self.last_row + 2)
-        #self.generate_button.grid(row=row_index + shifter)
         self.ui_map["ui_{}".format(self.last_logical_index)] = self.last_row + 1
         self.last_row += 1
 
