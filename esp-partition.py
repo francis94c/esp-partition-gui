@@ -180,7 +180,6 @@ class ESPPartitionGUI(Frame):
             b = Radiobutton(self, text=text, variable=self.template_string_var, value=value,
                             command=self.template_radio_button_state_changed)
             b.grid(row=0, column=column)
-            
 
         # Declare and add simple buttons
         self.plus_button = Button(self, text="Add Partition", command=self.plus_button_click)
@@ -257,17 +256,16 @@ class ESPPartitionGUI(Frame):
             for path in self.configs["recent"]:
                 self.recent_menu.add_command(label=path, command=lambda x=path: self.load_partition_data_from_file(x))
         self.file_menu.add_separator()
+        self.file_menu.add_command(label="Generate Partition", command=self.generate)
+        self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
+        self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         if "esp32_path" in self.configs:
             self.file_menu.add_command(label="Set Arduino ESP32 Path [{}]".format(self.configs["esp32_path"]),
                                        command=self.choose_esp32_path)
         else:
             self.file_menu.add_command(label="Set Arduino ESP32 Path", command=self.choose_esp32_path)
+        self.file_menu.add_separator()
         self.file_menu.add_command(label="Preferences", command=self.show_preferences)
-        self.file_menu.add_separator()
-        self.file_menu.add_command(label="Generate Partition", command=self.generate)
-        self.file_menu.add_separator()
-        self.file_menu.add_command(label="Convert Binary to CSV", command=self.convert_bin_to_csv)
-        self.file_menu.add_command(label="Convert CSV to Binary", command=self.convert_csv_to_bin)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Help", command=self.help)
         self.file_menu.add_command(label="About", command=self.about)
