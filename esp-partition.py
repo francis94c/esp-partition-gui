@@ -143,8 +143,8 @@ class ESPPartitionGUI(Frame):
 
         self.pack(fill=BOTH, side=TOP, expand=True)
 
-        self.status_bar = Frame(master)
-        self.status_bar.pack(side=TOP and LEFT)
+        self.status_bar = Frame(master, borderwidth=1, relief=SUNKEN)
+        self.status_bar.pack(side=LEFT, fill=BOTH, expand=True)
         self.message_var = StringVar()
         Label(self.status_bar, textvariable=self.message_var).pack(side=LEFT)
 
