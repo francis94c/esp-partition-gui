@@ -5,6 +5,5 @@ checkout [ESP32Partitions](https://github.com/francis94c/ESP32Partitions) for th
 
 ![ESP32 Partition Manager](images/esp-partition-close.png)  
 
-m m
 You must have python installed.  
 python27 (supported)
