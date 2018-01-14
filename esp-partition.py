@@ -233,7 +233,7 @@ class ESPPartitionGUI(Frame):
 
         self.max_spiffs_size = 0x3F7000
 
-        self.reflect_template(self.templates[0]["template"])
+        self.reflect_template("default", self.templates[0]["template"])
 
         # Set by default disabled widgets.
         self.disable_widgets("sub_type")
@@ -666,15 +666,15 @@ class ESPPartitionGUI(Frame):
         if "U_MIN" in self.template_string_var.get():
             template = self.get_template("minimal")
             if template is not None:
-                self.reflect_template(template)
+                self.reflect_template("minimal", template)
                 self.max_spiffs_size = 0x1F7000
         elif "U_DEF" in self.template_string_var.get():
             template = self.get_template("default")
             if template is not None:
-                self.reflect_template(template)
+                self.reflect_template("default", template)
                 self.max_spiffs_size = 0x3F7000
 
-    def reflect_template(self, template):
+    def reflect_template(self, name, template):
         if isinstance(template, list):
             template = Template(template)
         if template.is_valid:
@@ -817,6 +817,8 @@ class ESPPartitionGUI(Frame):
                     # The last know row modified in the grid.
                     self.last_row = bottom_row - 1
                     self.next_offset = template.get_next_offset()
+
+                    self.message_var.set("{} Template Loaded!".format(name))
             else:
                 # Has loaded a template before.
                 self.clear_screen()
@@ -833,6 +835,8 @@ class ESPPartitionGUI(Frame):
                 self.ui_entries["flags_spiffs"].set("          ")
 
                 self.next_offset = template.get_next_offset()
+
+                self.message_var.set("{} Template Loaded!".format(name))
 
     def clear_screen(self):
         indices = []
@@ -882,7 +886,7 @@ class ESPPartitionGUI(Frame):
                             row = [x.strip() for x in row]
                             template.add_row(row)
                     template.refresh()
-                    self.reflect_template(template)
+                    self.reflect_template("Selected File", template)
                     if "recent" not in self.configs:
                         self.configs["recent"] = []
                     if file_name not in self.configs["recent"]:
