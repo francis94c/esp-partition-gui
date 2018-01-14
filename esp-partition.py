@@ -5,6 +5,7 @@ from tkMessageBox import askokcancel
 import csv
 import os
 import json
+import webbrowser
 
 """
 Author: Francis Ilechukwu
@@ -270,7 +271,9 @@ class ESPPartitionGUI(Frame):
         self.file_menu.add_command(label="Quit", command=self.frame_quit)
 
         self.preference_window = None
+        self.about_window = None
         self.is_preference_open = False
+        self.is_about_open = False
         self.currently_open_file = None
 
         self.generate_preference_string_var = StringVar()
@@ -1200,10 +1203,23 @@ class ESPPartitionGUI(Frame):
 
     @staticmethod
     def help():
-        print("hello")
+        webbrowser.open_new("https://github.com/francis94c/esp-partition-gui#readme")
+
+    def close_about_window(self):
+        self.is_about_open = False
+        self.about_window.destroy()
 
     def about(self):
-        print(self.app_name)
+        if not self.is_about_open:
+            self.is_about_open = True
+            self.about_window = Toplevel()
+            self.about_window.maxsize(width=250, height=250)
+            self.about_window.protocol("WM_DELETE_WINDOW", self.close_about_window)
+
+            about = "ESP32 Partition GUI / ESP32 Partition Manager\nv0.0.4"
+
+            Label(self.about_window, text=about, wraplength=250).pack(side=LEFT and TOP)
+            Button(self.about_window, text="Ok", command=self.close_about_window).pack(side=TOP)
 
 
 if __name__ == "__main__":
