@@ -943,7 +943,7 @@ class ESPPartitionGUI(Frame):
                 if file_name != "":
                     if ".csv" in file_name:
                         self.write_to_csv(file_name)
-                        tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                        self.message_var.set("CSV File written to {}".format(file_name))
                     elif ".bin" in file_name:
                         csv_file_name = file_name.replace(".bin", ".csv")
 
@@ -954,7 +954,7 @@ class ESPPartitionGUI(Frame):
                         if os.system(
                                 "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
-                            tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+                            self.message_var.set("Binary File written to {}".format(file_name))
                             os.remove(csv_file_name)
                         else:
                             tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
@@ -969,14 +969,14 @@ class ESPPartitionGUI(Frame):
                         if os.system(
                                 "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
-                            tkMessageBox.showinfo("Done Writing", "Done Writing to Binary and CSV File")
+                            self.message_var.set("Done writing CSV and Binary Files")
                         else:
                             tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
             else:
                 if "generate" not in self.configs:
                     file_name = "{}/{}".format(self.configs["dump_path"], "default.csv")
                     self.write_to_csv(file_name)
-                    tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                    self.message_var.set("CSV File written to {}".format(file_name))
                 elif self.configs["generate"] != "BOTH":
                     file_name = "{}/default.{}".format(self.configs["dump_path"], self.configs["generate"].lower())
                     if self.configs["generate"] == "BIN":
@@ -985,15 +985,13 @@ class ESPPartitionGUI(Frame):
                         if os.system(
                                 "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
-                            tkMessageBox.showinfo("Done Writing {} File".format(self.configs["generate"]),
-                                                  "Done Writing {} to {}".format(self.configs["generate"],
-                                                                                 file_name))
+                            self.message_var.set("Binary File written to {}".format(file_name))
                             os.remove(csv_file_name)
                         else:
                             tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
                     else:
                         self.write_to_csv(file_name)
-                        tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+                        self.message_var.set("CSV File written to {}".format(file_name))
                 else:
                     file_name = "{}/{}".format(self.configs["dump_path"], "default.csv")
                     bin_file_name = file_name.replace(".csv", ".bin")
@@ -1001,9 +999,7 @@ class ESPPartitionGUI(Frame):
                     if os.system(
                             "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
                                 self.configs["esp32_path"], file_name, bin_file_name)) == 0:
-                        tkMessageBox.showinfo("Done Writing CSV and Binary File",
-                                              "Done Writing CSV and Binary to {} and {}".format(file_name,
-                                                                                                bin_file_name))
+                        self.message_var.set("Done writing CSV and Binary Files")
                     else:
                         tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
