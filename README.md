@@ -3,7 +3,8 @@
 The ESP32 Partition Manager is a tool that eases the process of creating CSV fies for partitioning ESP range of IoT Boards. this program can be launched by running `python esp-partition.py` from a terminal.
 checkout [ESP32Partitions](https://github.com/francis94c/ESP32Partitions) for the latest installation file that enables you launch this tool from the Arduino IDE Tools menu.  
 
-![ESP32 Partition Manager](images/esp-partition-close.png?raw=true "ESP32 Partition Manager")
+![ESP32 Partition Manager](images/esp-partition-close.png)  
 
+m m
 You must have python installed.  
 python27 (supported)
