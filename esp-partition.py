@@ -214,6 +214,8 @@ class ESPPartitionGUI(Frame):
 
         self.ui_entries = {}
 
+        self.foreign_partition_indices = []
+
         self.last_row = - 1
         self.forgotten_logical_indices = []
 
@@ -473,6 +475,9 @@ class ESPPartitionGUI(Frame):
 
         del self.ui_map["ui_{}".format(index)]
 
+        if index in self.foreign_partition_indices:
+            self.foreign_partition_indices.remove(index)
+
         # decrement control variables accordingly
         self.last_sub_type -= 0x1
         self.calibrate_ui()
@@ -552,8 +557,8 @@ class ESPPartitionGUI(Frame):
         :return: None
         """
         if self.last_logical_index > 5:
-            if "name_{}".format(self.last_logical_index) in self.ui_entries:
-                self.delete_row(self.last_logical_index)
+            if len(self.foreign_partition_indices) > 0:
+                self.delete_row(self.foreign_partition_indices[-1])
 
     def add_row(self, row=None):
         """
@@ -664,6 +669,9 @@ class ESPPartitionGUI(Frame):
         self.plus_button.grid(row=self.last_row + 2)
         self.ui_map["ui_{}".format(self.last_logical_index)] = self.last_row + 1
         self.last_row += 1
+
+        # Queue in foreign partitions logical indices.
+        self.foreign_partition_indices.append(self.last_logical_index)
 
     def template_radio_button_state_changed(self):
         if "U_MIN" in self.template_string_var.get():
@@ -840,6 +848,7 @@ class ESPPartitionGUI(Frame):
                 self.next_offset = template.get_next_offset()
 
                 self.message_var.set("{} Template Loaded!".format(name))
+            del self.foreign_partition_indices[:]
 
     def clear_screen(self):
         indices = []
