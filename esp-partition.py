@@ -371,6 +371,14 @@ class ESPPartitionGUI(Frame):
                 json.dump(self.configs, open("init.json", "w"))
                 self.esp32_path_string_var.set(folder_string)
                 tkMessageBox.showinfo("Success", "Arduino ESP32 root path was successfully set.")
+                if "dump_path" not in self.configs:
+                    self.configs["dump_path"] = folder_string + "/tools/partitions"
+                    json.dump(self.configs, open("init.json", "w"))
+                    self.dump_path_preference_string_var.set(folder_string + "/tools/partitions")
+                elif self.configs["dump_path"] == "":
+                    self.configs["dump_path"] = folder_string + "/tools/partitions"
+                    json.dump(self.configs, open("init.json", "w"))
+                    self.dump_path_preference_string_var.set(folder_string + "/tools/partitions")
             else:
                 tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
@@ -1225,7 +1233,7 @@ class ESPPartitionGUI(Frame):
             self.about_window.maxsize(width=250, height=250)
             self.about_window.protocol("WM_DELETE_WINDOW", self.close_about_window)
 
-            about = "ESP32 Partition GUI / ESP32 Partition Manager\nv0.0.4"
+            about = "ESP32 Partition GUI / ESP32 Partition Manager\nv0.0.5"
 
             Label(self.about_window, text=about, wraplength=250).pack(side=LEFT and TOP)
             Button(self.about_window, text="Ok", command=self.close_about_window).pack(side=TOP)
