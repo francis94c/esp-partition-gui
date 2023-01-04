@@ -1,7 +1,7 @@
-from Tkinter import *
-import tkMessageBox
-from tkFileDialog import asksaveasfilename, askdirectory, askopenfilename
-from tkMessageBox import askokcancel
+from tkinter import *
+import tkinter.messagebox
+from tkinter.filedialog import asksaveasfilename, askdirectory, askopenfilename
+from tkinter.messagebox import askokcancel
 import csv
 import os
 import json
@@ -10,6 +10,9 @@ import webbrowser
 """
 Author: Francis Ilechukwu
 Credits: Elochukwu Ifediora C.
+
+Ported to Python 3.11 by
+Xedric Antiola
 """
 
 
@@ -124,6 +127,7 @@ class ESPPartitionGUI(Frame):
         :param master: a Tk top level object obtained by calling Tk().
         """
 
+
         self.app_name = "ESP Partition GUI"
 
         Frame.__init__(self, master)
@@ -137,6 +141,7 @@ class ESPPartitionGUI(Frame):
             self.templates = []
         else:
             self.templates = templates
+        
 
         # Partition templating valid column order: used in the self.add_row(...) function. will also be used for
         # validation.
@@ -148,6 +153,21 @@ class ESPPartitionGUI(Frame):
         self.status_bar.pack(side=LEFT, fill=BOTH, expand=True)
         self.message_var = StringVar()
         Label(self.status_bar, textvariable=self.message_var).pack(side=LEFT)
+
+        # get the screen dimension
+        window_width = 750
+        window_height = 280
+        
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        
+        # Starts App In Center Screen
+        center_x = int(screen_width/2 - window_width / 2)
+        center_y = int(screen_height/2 - window_height / 2)
+        top.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
+        
+        # Disable Window Resizing
+        top.resizable(False, False)             
 
         # Configure all columns to be of layout weight 1.
         self.grid_columnconfigure(0, weight=1)
@@ -295,7 +315,7 @@ class ESPPartitionGUI(Frame):
                                       filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
         if file_name != "":
             self.write_to_csv(file_name)
-            tkMessageBox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
+            tkinter.messagebox.showinfo("Done Writing CSV File", "Done Writing CSV to {}".format(file_name))
 
     def close_preference_window(self):
         self.preference_window.destroy()
@@ -305,10 +325,19 @@ class ESPPartitionGUI(Frame):
         if not self.is_preference_open:
             self.is_preference_open = True
             self.preference_window = Toplevel()
+            self.preference_window.attributes('-topmost', 1)
             self.preference_window.protocol("WM_DELETE_WINDOW", self.close_preference_window)
+            
+            screen_width = self.winfo_screenwidth()
+            screen_height = self.winfo_screenheight()            
+            window_width = 500
+            window_height = 180            
+            center_x = int(screen_width/2 - window_width / 2)
+            center_y = int(screen_height/2 - window_height / 2)
 
-            self.preference_window.maxsize(width=500, height=180)
+            self.preference_window.maxsize(window_width, window_height)
             self.preference_window.title("Preferences")
+            self.preference_window.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
 
             self.preference_window.grid_columnconfigure(0, weight=1)
             self.preference_window.grid_columnconfigure(1, weight=3)
@@ -366,11 +395,11 @@ class ESPPartitionGUI(Frame):
         """
         folder_string = askdirectory()
         if folder_string != "":
-            if os.path.isfile(folder_string + "/tools/gen_esp32part.py"):
+            if os.path.isfile(folder_string + "/gen_esp32part.py"):
                 self.configs["esp32_path"] = folder_string
                 json.dump(self.configs, open("init.json", "w"))
                 self.esp32_path_string_var.set(folder_string)
-                tkMessageBox.showinfo("Success", "Arduino ESP32 root path was successfully set.")
+                tkinter.messagebox.showinfo("Success", "Arduino ESP32 root path was successfully set.")
                 if "dump_path" not in self.configs:
                     self.configs["dump_path"] = folder_string + "/tools/partitions"
                     json.dump(self.configs, open("init.json", "w"))
@@ -380,7 +409,7 @@ class ESPPartitionGUI(Frame):
                     json.dump(self.configs, open("init.json", "w"))
                     self.dump_path_preference_string_var.set(folder_string + "/tools/partitions")
             else:
-                tkMessageBox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
+                tkinter.messagebox.showerror("ESP Gen Script Error", "The Espressif ESP32 Gen Script was not found.")
 
     def refresh(self):
         self.next_offset = self.calibrate_offsets()
@@ -495,7 +524,7 @@ class ESPPartitionGUI(Frame):
         return len(self.ui_entries)
 
     def calibrate_ui(self):
-        buff = sorted(self.ui_map.iteritems(), key=lambda (k, v): (v, k))
+        buff = sorted(iter(self.ui_map.items()), key=lambda k_v: (k_v[1], k_v[0]))
 
         # grid row start index of partitions.
         scan_index = 2
@@ -504,7 +533,7 @@ class ESPPartitionGUI(Frame):
             if value != scan_index:
                 self.ui_map[key] = scan_index
             scan_index += 1
-        for key, value in self.ui_map.iteritems():
+        for key, value in self.ui_map.items():
             index = int(key[key.rfind("_") + 1:])
             self.widgets["name"][index].grid(row=value, column=1)
             self.widgets["type"][index].grid(row=value, column=2)
@@ -837,7 +866,7 @@ class ESPPartitionGUI(Frame):
                     self.last_row = bottom_row - 1
                     self.next_offset = template.get_next_offset()
 
-                    self.message_var.set("{} Template Loaded!".format(name))
+                    self.message_var.set("{} Template Loaded!".format(name.capitalize()))
             else:
                 # Has loaded a template before.
                 self.clear_screen()
@@ -855,12 +884,12 @@ class ESPPartitionGUI(Frame):
 
                 self.next_offset = template.get_next_offset()
 
-                self.message_var.set("{} Template Loaded!".format(name))
+                self.message_var.set("{} Template Loaded!".format(name.capitalize()))
             del self.foreign_partition_indices[:]
 
     def clear_screen(self):
         indices = []
-        for key, value in self.ui_entries.iteritems():
+        for key, value in self.ui_entries.items():
             if "name" in key:
                 index = key[key.rfind("_") + 1:]
                 if index != "spiffs":
@@ -896,7 +925,7 @@ class ESPPartitionGUI(Frame):
                                     found_header = True
                                     template.add_row(column_header)
                                 else:
-                                    tkMessageBox.showerror("Loading Error", "Improper CSV Header, Mismatched Length")
+                                    tkinter.messagebox.showerror("Loading Error", "Improper CSV Header, Mismatched Length")
                                     break
                             else:
                                 found_header = True
@@ -916,13 +945,13 @@ class ESPPartitionGUI(Frame):
             else:
                 if "recent" in self.configs:
                     if file_name in self.configs["recent"]:
-                        tkMessageBox.showinfo("File Non Existent",
+                        tkinter.messagebox.showinfo("File Non Existent",
                                               "The file {} does not exist anymore.".format(file_name))
                         self.configs["recent"].remove(file_name)
                         json.dump(self.configs, open("init.json", "w"))
 
     def match_template_column_order(self, columns):
-        for key, value in self.template_column_order.iteritems():
+        for key, value in self.template_column_order.items():
             if key != columns[value]:
                 return False
         return True
@@ -946,7 +975,7 @@ class ESPPartitionGUI(Frame):
         :return: None.
         """
         if "esp32_path" not in self.configs:
-            tkMessageBox.showerror("Arduino ESP32 Path", "An Arduino ESP32 path was not set.")
+            tkinter.messagebox.showerror("Arduino ESP32 Path", "An Arduino ESP32 path was not set.")
         else:
             if "dump_path" not in self.configs:
                 if "generate" not in self.configs:
@@ -972,12 +1001,12 @@ class ESPPartitionGUI(Frame):
 
                         # convert to binary
                         if os.system(
-                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                "python {}\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
                             self.message_var.set("Binary File written to {}".format(file_name))
                             os.remove(csv_file_name)
                         else:
-                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                            tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
                     else:
                         csv_file_name = file_name + ".csv"
                         file_name += ".bin"
@@ -987,11 +1016,11 @@ class ESPPartitionGUI(Frame):
 
                         # convert to binary
                         if os.system(
-                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                "python {}\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
                             self.message_var.set("Done writing CSV and Binary Files")
                         else:
-                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                            tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
             else:
                 if "generate" not in self.configs:
                     file_name = "{}/{}".format(self.configs["dump_path"], "default.csv")
@@ -1003,12 +1032,12 @@ class ESPPartitionGUI(Frame):
                         csv_file_name = file_name.replace(".bin", ".csv")
                         self.write_to_csv(csv_file_name)
                         if os.system(
-                                "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                                "python {}\\gen_esp32part.py --verify {} {}".format(
                                     self.configs["esp32_path"], csv_file_name, file_name)) == 0:
                             self.message_var.set("Binary File written to {}".format(file_name))
                             os.remove(csv_file_name)
                         else:
-                            tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                            tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
                     else:
                         self.write_to_csv(file_name)
                         self.message_var.set("CSV File written to {}".format(file_name))
@@ -1017,11 +1046,12 @@ class ESPPartitionGUI(Frame):
                     bin_file_name = file_name.replace(".csv", ".bin")
                     self.write_to_csv(file_name)
                     if os.system(
-                            "python {}\\tools\\gen_esp32part.py --verify {} {}".format(
+                            "python {}\\gen_esp32part.py --verify {} {}".format(
                                 self.configs["esp32_path"], file_name, bin_file_name)) == 0:
                         self.message_var.set("Done writing CSV and Binary Files")
+                        tkinter.messagebox.showinfo("Esp Partition","CSV and Binary Files Written Succesfully")
                     else:
-                        tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                        tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
 
     def convert_csv_to_bin(self):
         """
@@ -1031,21 +1061,21 @@ class ESPPartitionGUI(Frame):
         if self.configs["esp32_path"] is not None:
             csv_file_name = askopenfilename(defaultextension=".csv", title="Open CSV file as...",
                                             filetypes=(("CSV File", "*.csv"), ("All Files", "*.*")))
-            if csv_file_name is not "":
+            if csv_file_name != "":
                 if ".csv" not in csv_file_name:
                     csv_file_name += ".csv"
                 bin_file_name = csv_file_name.replace(".csv", ".bin")
 
                 # convert to bin
                 if os.system(
-                        "python {}/tools/gen_esp32part.py --verify {} {}".format(
+                        "python {}/gen_esp32part.py --verify {} {}".format(
                             self.configs["esp32_path"], csv_file_name, bin_file_name)) == 0:
 
-                    tkMessageBox.showinfo("Done Writing", "Done Writing to Binary File")
+                    tkinter.messagebox.showinfo("Done Writing", "Done Writing to Binary File")
                 else:
-                    tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                    tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
         else:
-            tkMessageBox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
+            tkinter.messagebox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
 
     def convert_bin_to_csv(self):
         """
@@ -1055,21 +1085,21 @@ class ESPPartitionGUI(Frame):
         if self.configs["esp32_path"] is not None:
             bin_file_name = askopenfilename(defaultextension=".csv", title="Open Binary file as...",
                                             filetypes=(("Binary File", "*.bin"), ("All Files", "*.*")))
-            if bin_file_name is not "":
+            if bin_file_name != "":
                 if ".bin" not in bin_file_name:
                     bin_file_name += ".bin"
                 csv_file_name = bin_file_name.replace(".bin", ".csv")
 
                 # convert to csv
                 if os.system(
-                        "python {}/tools/gen_esp32part.py --verify {} {}".format(
+                        "python {}/gen_esp32part.py --verify {} {}".format(
                             self.configs["esp32_path"], bin_file_name, csv_file_name)) == 0:
 
-                    tkMessageBox.showinfo("Done Writing", "Done Writing to CSV File")
+                    tkinter.messagebox.showinfo("Done Writing", "Done Writing to CSV File")
                 else:
-                    tkMessageBox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
+                    tkinter.messagebox.showerror("Execution Error", "Error Executing ESP32 Gen Script")
         else:
-            tkMessageBox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
+            tkinter.messagebox.showerror("Arduino ESP32 Root Path", "An Arduino ESP32 root path was not set.")
 
     def write_to_csv(self, output_file_name):
         """
@@ -1078,7 +1108,7 @@ class ESPPartitionGUI(Frame):
         :param output_file_name: file name of output csv file (absolute).
         :return: None
         """
-        with open(output_file_name, "wb") as csv_file:
+        with open(output_file_name, "w") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=",", quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerow(["# Name", "Type", "SubType", "Offset", "Size", "Flags"])
 
@@ -1138,7 +1168,7 @@ class ESPPartitionGUI(Frame):
         gets the only nvs subtype widget val index.
         :return: (int) nvs subtype widget val index
         """
-        for k, v in self.ui_entries.iteritems():
+        for k, v in self.ui_entries.items():
             if "sub_type" in k and "nvs" in v.get():
                 return k[k.rfind("_") + 1:]
 
@@ -1147,7 +1177,7 @@ class ESPPartitionGUI(Frame):
         gets the only ota data subtype widget val index.
         :return: (int) ota data subtype widget val index.
         """
-        for k, v in self.ui_entries.iteritems():
+        for k, v in self.ui_entries.items():
             if "type" in k and "data" in v.get():
                 row_index = k[k.rfind("_") + 1:]
                 if "ota" in self.ui_entries["sub_type_{}".format(row_index)].get():
@@ -1159,7 +1189,7 @@ class ESPPartitionGUI(Frame):
         :return: (list) ota app type indices.
         """
         indices = []
-        for k, v in self.ui_entries.iteritems():
+        for k, v in self.ui_entries.items():
             if "type" in k and "app" in v.get():
                 indices.append(k[k.rfind("_") + 1:])
         sub_types = {}
@@ -1167,7 +1197,7 @@ class ESPPartitionGUI(Frame):
             sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
 
         # sort
-        sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+        sub_types = sorted(iter(sub_types.items()), key=lambda ak_av: (ak_av[1], ak_av[0]))
 
         # extract proper indices.
         for i in range(len(indices)):
@@ -1181,7 +1211,7 @@ class ESPPartitionGUI(Frame):
         :return: (list) data type indices.
         """
         indices = []
-        for k, v in self.ui_entries.iteritems():
+        for k, v in self.ui_entries.items():
             if "type" in k and "data" in v.get():
                 row_index = k[k.rfind("_") + 1:]
                 if "spiffs" not in self.ui_entries["sub_type_{}".format(row_index)].get() and "ota" not in \
@@ -1193,7 +1223,7 @@ class ESPPartitionGUI(Frame):
             sub_types["a_{}".format(i)] = self.ui_entries["sub_type_{}".format(i)].get()
 
         # sort
-        sub_types = sorted(sub_types.iteritems(), key=lambda (ak, av): (av, ak))
+        sub_types = sorted(iter(sub_types.items()), key=lambda ak_av1: (ak_av1[1], ak_av1[0]))
 
         # extract proper indices
         for i in range(len(indices)):
@@ -1206,7 +1236,7 @@ class ESPPartitionGUI(Frame):
         gets the spiffs widget val index.
         :return: (int) the spiffs widget val index.
         """
-        for k, v in self.ui_entries.iteritems():
+        for k, v in self.ui_entries.items():
             if "sub_type" in k and "spiffs" in v.get():
                 return k[k.rfind("_") + 1:]
 
@@ -1243,6 +1273,7 @@ if __name__ == "__main__":
     top = Tk()
     top.title("ESP Partition GUI")
     init_file = None
+    
 
     # load init file.
     if os.path.isfile("init.json"):
